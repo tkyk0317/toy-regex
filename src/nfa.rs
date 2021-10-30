@@ -6,7 +6,7 @@ use std::collections::HashSet;
 use std::vec::Vec;
 
 #[derive(Debug)]
-struct NFARulebook {
+pub struct NFARulebook {
     rules: Vec<FARule>,
 }
 
@@ -71,14 +71,14 @@ impl<'a> NFA<'a> {
 }
 
 #[derive(Debug)]
-struct NFADesign<'a> {
+pub struct NFADesign<'a> {
     start_state: i32,
     accept_states: &'a Vec<i32>,
     rulebook: &'a NFARulebook,
 }
 
 impl<'a> NFADesign<'a> {
-    fn new(start_state: i32, accept_states: &'a Vec<i32>, rulebook: &'a NFARulebook) -> Self {
+    pub fn new(start_state: i32, accept_states: &'a Vec<i32>, rulebook: &'a NFARulebook) -> Self {
         NFADesign {
             start_state: start_state,
             accept_states: accept_states,
