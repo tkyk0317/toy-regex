@@ -23,8 +23,8 @@ impl<'a, T: BasePattern, U: BasePattern> BasePattern for Concat<'a, T, U> {
     fn is_match(&self, s: &str) -> bool {
         let rule = self.rule();
         NFADesign::new(
-            rule[0].state,
-            &vec![rule.last().unwrap().next_state],
+            rule.first().expect("[Concat::new] Vec::first error ").state,
+            &vec![rule.last().expect("[Concat::new] unwrap error").next_state],
             &NFARulebook::new(rule),
         )
         .accept(s)
@@ -36,8 +36,18 @@ impl<'a, T: BasePattern, U: BasePattern> BasePattern for Concat<'a, T, U> {
         let r_rule = self.right.rule();
 
         // ε遷移を挟んで、左の末尾と右の開始をつねげる
-        let epsilon = FARule::new(l_rule.last().unwrap().next_state, None, r_rule[0].state);
-        l_rule.push(epsilon);
+        let epsilon_rule = FARule::new(
+            l_rule
+                .last()
+                .expect("[Concat::rule] Vec::last error")
+                .next_state,
+            None,
+            r_rule
+                .first()
+                .expect("[Concat::rule] Vec::first error")
+                .state,
+        );
+        l_rule.push(epsilon_rule);
         l_rule.extend(r_rule);
         l_rule
     }
