@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::farule::FARule;
+use crate::farule::{FARule, State};
 use std::char;
 use std::vec::Vec;
 
@@ -13,11 +13,11 @@ impl DFARulebook {
         DFARulebook { rules: rules }
     }
 
-    pub fn next_state(&self, state: i32, character: Option<char>) -> i32 {
-        self.rule_for(state, character).follow()
+    pub fn next_state(&self, state: State, character: Option<char>) -> State {
+        *self.rule_for(&state, character).follow()
     }
 
-    fn rule_for(&self, state: i32, character: Option<char>) -> &FARule {
+    fn rule_for(&self, state: &State, character: Option<char>) -> &FARule {
         self.rules
             .iter()
             .find(|r| r.applies_to(state, &character))
@@ -26,13 +26,17 @@ impl DFARulebook {
 }
 
 struct DFA<'a> {
-    current_state: i32,
-    accept_states: &'a Vec<i32>,
+    current_state: State,
+    accept_states: &'a Vec<State>,
     rulebook: &'a DFARulebook,
 }
 
 impl<'a> DFA<'a> {
-    pub fn new(current_state: i32, accept_states: &'a Vec<i32>, rulebook: &'a DFARulebook) -> Self {
+    pub fn new(
+        current_state: State,
+        accept_states: &'a Vec<State>,
+        rulebook: &'a DFARulebook,
+    ) -> Self {
         DFA {
             current_state: current_state,
             accept_states: accept_states,
@@ -55,13 +59,13 @@ impl<'a> DFA<'a> {
 }
 
 struct DFADesign<'a> {
-    start_state: i32,
-    accept_states: &'a Vec<i32>,
+    start_state: State,
+    accept_states: &'a Vec<State>,
     rulebook: &'a DFARulebook,
 }
 
 impl<'a> DFADesign<'a> {
-    fn new(start_state: i32, accept_states: &'a Vec<i32>, rulebook: &'a DFARulebook) -> Self {
+    fn new(start_state: State, accept_states: &'a Vec<State>, rulebook: &'a DFARulebook) -> Self {
         DFADesign {
             start_state: start_state,
             accept_states: accept_states,
@@ -83,46 +87,52 @@ mod test {
     #[test]
     fn test_next_state() {
         let dfa_rule = DFARulebook::new(vec![
-            FARule::new(1, Some('a'), 2),
-            FARule::new(1, Some('b'), 1),
-            FARule::new(2, Some('a'), 2),
-            FARule::new(2, Some('b'), 3),
-            FARule::new(3, Some('a'), 3),
-            FARule::new(3, Some('b'), 3),
+            FARule::new(State::new(1), Some('a'), State::new(2)),
+            FARule::new(State::new(1), Some('b'), State::new(1)),
+            FARule::new(State::new(2), Some('a'), State::new(2)),
+            FARule::new(State::new(2), Some('b'), State::new(3)),
+            FARule::new(State::new(3), Some('a'), State::new(3)),
+            FARule::new(State::new(3), Some('b'), State::new(3)),
         ]);
 
-        assert_eq!(2, dfa_rule.next_state(1, Some('a')));
-        assert_eq!(1, dfa_rule.next_state(1, Some('b')));
-        assert_eq!(3, dfa_rule.next_state(2, Some('b')));
+        assert_eq!(State::new(2), dfa_rule.next_state(State::new(1), Some('a')));
+        assert_eq!(State::new(1), dfa_rule.next_state(State::new(1), Some('b')));
+        assert_eq!(State::new(3), dfa_rule.next_state(State::new(2), Some('b')));
     }
 
     #[test]
     fn test_dfa_accepting() {
         let rule = DFARulebook::new(vec![
-            FARule::new(1, Some('a'), 2),
-            FARule::new(1, Some('b'), 1),
-            FARule::new(2, Some('a'), 2),
-            FARule::new(2, Some('b'), 3),
-            FARule::new(3, Some('a'), 3),
-            FARule::new(3, Some('b'), 3),
+            FARule::new(State::new(1), Some('a'), State::new(2)),
+            FARule::new(State::new(1), Some('b'), State::new(1)),
+            FARule::new(State::new(2), Some('a'), State::new(2)),
+            FARule::new(State::new(2), Some('b'), State::new(3)),
+            FARule::new(State::new(3), Some('a'), State::new(3)),
+            FARule::new(State::new(3), Some('b'), State::new(3)),
         ]);
 
-        assert_eq!(true, DFA::new(1, &vec![1, 3], &rule).accepting());
-        assert_eq!(true, DFA::new(1, &vec![1], &rule).accepting());
+        assert_eq!(
+            true,
+            DFA::new(State::new(1), &vec![State::new(1), State::new(3)], &rule).accepting()
+        );
+        assert_eq!(
+            true,
+            DFA::new(State::new(1), &vec![State::new(1)], &rule).accepting()
+        );
     }
 
     #[test]
     fn test_dfa_read_string() {
         let rule = DFARulebook::new(vec![
-            FARule::new(1, Some('a'), 2),
-            FARule::new(1, Some('b'), 1),
-            FARule::new(2, Some('a'), 2),
-            FARule::new(2, Some('b'), 3),
-            FARule::new(3, Some('a'), 3),
-            FARule::new(3, Some('b'), 3),
+            FARule::new(State::new(1), Some('a'), State::new(2)),
+            FARule::new(State::new(1), Some('b'), State::new(1)),
+            FARule::new(State::new(2), Some('a'), State::new(2)),
+            FARule::new(State::new(2), Some('b'), State::new(3)),
+            FARule::new(State::new(3), Some('a'), State::new(3)),
+            FARule::new(State::new(3), Some('b'), State::new(3)),
         ]);
-        let accept_statuses = vec![3];
-        let mut dfa = DFA::new(1, &accept_statuses, &rule);
+        let accept_statuses = vec![State::new(3)];
+        let mut dfa = DFA::new(State::new(1), &accept_statuses, &rule);
         dfa.read_string("baaab");
 
         assert_eq!(true, dfa.accepting());
@@ -131,15 +141,15 @@ mod test {
     #[test]
     fn test_dfa_desgin() {
         let rule = DFARulebook::new(vec![
-            FARule::new(1, Some('a'), 2),
-            FARule::new(1, Some('b'), 1),
-            FARule::new(2, Some('a'), 2),
-            FARule::new(2, Some('b'), 3),
-            FARule::new(3, Some('a'), 3),
-            FARule::new(3, Some('b'), 3),
+            FARule::new(State::new(1), Some('a'), State::new(2)),
+            FARule::new(State::new(1), Some('b'), State::new(1)),
+            FARule::new(State::new(2), Some('a'), State::new(2)),
+            FARule::new(State::new(2), Some('b'), State::new(3)),
+            FARule::new(State::new(3), Some('a'), State::new(3)),
+            FARule::new(State::new(3), Some('b'), State::new(3)),
         ]);
-        let accept_statuses = vec![3];
-        let design = DFADesign::new(1, &accept_statuses, &rule);
+        let accept_statuses = vec![State::new(3)];
+        let design = DFADesign::new(State::new(1), &accept_statuses, &rule);
         assert_eq!(true, design.accept("baaab"));
     }
 }

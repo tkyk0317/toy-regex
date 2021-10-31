@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::farule::FARule;
+use crate::farule::{FARule, State};
 use std::char;
 use std::collections::HashSet;
 use std::vec::Vec;
@@ -15,35 +15,35 @@ impl NFARulebook {
         NFARulebook { rules: rules }
     }
 
-    pub fn next_state(&self, states: &HashSet<i32>, c: Option<char>) -> HashSet<i32> {
+    pub fn next_state(&self, states: &HashSet<State>, c: Option<char>) -> HashSet<State> {
         let mut next_states = vec![];
         states.iter().for_each(|s| {
-            let mut t = self.rule_for(*s, c);
+            let mut t = self.rule_for(s, c);
             next_states.append(&mut t);
         });
 
-        next_states.into_iter().collect::<HashSet<i32>>()
+        next_states.into_iter().collect::<HashSet<State>>()
     }
 
-    fn rule_for(&self, s: i32, c: Option<char>) -> Vec<i32> {
+    fn rule_for(&self, s: &State, c: Option<char>) -> Vec<State> {
         self.rules
             .iter()
             .filter(|r| r.applies_to(s, &c))
-            .map(|r| r.follow())
-            .collect::<Vec<i32>>()
+            .map(|r| *r.follow())
+            .collect::<Vec<State>>()
     }
 }
 
 struct NFA<'a> {
-    current_state: HashSet<i32>,
-    accept_states: &'a Vec<i32>,
+    current_state: HashSet<State>,
+    accept_states: &'a Vec<State>,
     rulebook: &'a NFARulebook,
 }
 
 impl<'a> NFA<'a> {
     pub fn new(
-        current_state: HashSet<i32>,
-        accept_states: &'a Vec<i32>,
+        current_state: HashSet<State>,
+        accept_states: &'a Vec<State>,
         rulebook: &'a NFARulebook,
     ) -> Self {
         NFA {
@@ -64,7 +64,7 @@ impl<'a> NFA<'a> {
         s.chars().for_each(|c| {
             // ε遷移を行ってから通常遷移
             let epsilon = self.rulebook.next_state(&self.current_state, None);
-            self.current_state.extend(&epsilon);
+            self.current_state.extend(epsilon);
             self.current_state = self.rulebook.next_state(&self.current_state, Some(c));
         })
     }
@@ -72,13 +72,17 @@ impl<'a> NFA<'a> {
 
 #[derive(Debug)]
 pub struct NFADesign<'a> {
-    start_state: i32,
-    accept_states: &'a Vec<i32>,
+    start_state: State,
+    accept_states: &'a Vec<State>,
     rulebook: &'a NFARulebook,
 }
 
 impl<'a> NFADesign<'a> {
-    pub fn new(start_state: i32, accept_states: &'a Vec<i32>, rulebook: &'a NFARulebook) -> Self {
+    pub fn new(
+        start_state: State,
+        accept_states: &'a Vec<State>,
+        rulebook: &'a NFARulebook,
+    ) -> Self {
         NFADesign {
             start_state: start_state,
             accept_states: accept_states,
@@ -104,59 +108,75 @@ mod test {
     fn test_nfarulebook() {
         {
             let book = NFARulebook::new(vec![
-                FARule::new(1, Some('a'), 1),
-                FARule::new(1, Some('b'), 1),
-                FARule::new(1, Some('b'), 2),
-                FARule::new(2, Some('a'), 3),
-                FARule::new(2, Some('b'), 3),
-                FARule::new(3, Some('a'), 4),
-                FARule::new(3, Some('b'), 4),
+                FARule::new(State::new(1), Some('a'), State::new(1)),
+                FARule::new(State::new(1), Some('b'), State::new(1)),
+                FARule::new(State::new(1), Some('b'), State::new(2)),
+                FARule::new(State::new(2), Some('a'), State::new(3)),
+                FARule::new(State::new(2), Some('b'), State::new(3)),
+                FARule::new(State::new(3), Some('a'), State::new(4)),
+                FARule::new(State::new(3), Some('b'), State::new(4)),
             ]);
 
             assert_eq!(
-                vec![1, 2].into_iter().collect::<HashSet<i32>>(),
-                book.next_state(&vec![1].into_iter().collect(), Some('b'))
+                vec![State::new(1), State::new(2)]
+                    .into_iter()
+                    .collect::<HashSet<State>>(),
+                book.next_state(&vec![State::new(1)].into_iter().collect(), Some('b'))
             );
             assert_eq!(
-                vec![1, 3].into_iter().collect::<HashSet<i32>>(),
-                book.next_state(&vec![1, 2].into_iter().collect(), Some('a'))
+                vec![State::new(1), State::new(2), State::new(3)]
+                    .into_iter()
+                    .collect::<HashSet<State>>(),
+                book.next_state(
+                    &vec![State::new(1), State::new(2)].into_iter().collect(),
+                    Some('b')
+                )
             );
             assert_eq!(
-                vec![1, 2, 4].into_iter().collect::<HashSet<i32>>(),
-                book.next_state(&vec![1, 3].into_iter().collect(), Some('b'))
-            );
-        }
-        {
-            let book =
-                NFARulebook::new(vec![FARule::new(1, None, 2), FARule::new(1, Some('a'), 2)]);
-
-            assert_eq!(
-                vec![2].into_iter().collect::<HashSet<i32>>(),
-                book.next_state(&vec![1].into_iter().collect(), None)
-            );
-            assert_eq!(
-                vec![2].into_iter().collect::<HashSet<i32>>(),
-                book.next_state(&vec![1].into_iter().collect(), Some('a'))
-            );
-            assert_eq!(
-                vec![].into_iter().collect::<HashSet<i32>>(),
-                book.next_state(&vec![1].into_iter().collect(), Some('b'))
+                vec![State::new(1), State::new(2), State::new(4)]
+                    .into_iter()
+                    .collect::<HashSet<State>>(),
+                book.next_state(
+                    &vec![State::new(1), State::new(3)].into_iter().collect(),
+                    Some('b')
+                )
             );
         }
         {
             let book = NFARulebook::new(vec![
-                FARule::new(1, None, 2),
-                FARule::new(1, None, 4),
-                FARule::new(2, Some('a'), 3),
-                FARule::new(3, Some('a'), 2),
-                FARule::new(4, Some('a'), 5),
-                FARule::new(5, Some('a'), 6),
-                FARule::new(6, Some('a'), 4),
+                FARule::new(State::new(1), None, State::new(2)),
+                FARule::new(State::new(1), Some('a'), State::new(2)),
             ]);
 
             assert_eq!(
-                vec![2, 4].into_iter().collect::<HashSet<i32>>(),
-                book.next_state(&vec![1].into_iter().collect(), None)
+                vec![State::new(2)].into_iter().collect::<HashSet<State>>(),
+                book.next_state(&vec![State::new(1)].into_iter().collect(), None)
+            );
+            assert_eq!(
+                vec![State::new(2)].into_iter().collect::<HashSet<State>>(),
+                book.next_state(&vec![State::new(1)].into_iter().collect(), Some('a'))
+            );
+            assert_eq!(
+                vec![].into_iter().collect::<HashSet<State>>(),
+                book.next_state(&vec![State::new(1)].into_iter().collect(), Some('b'))
+            );
+        }
+        {
+            let book = NFARulebook::new(vec![
+                FARule::new(State::new(1), None, State::new(2)),
+                FARule::new(State::new(1), None, State::new(4)),
+                FARule::new(State::new(2), Some('a'), State::new(3)),
+                FARule::new(State::new(3), Some('a'), State::new(2)),
+                FARule::new(State::new(4), Some('a'), State::new(5)),
+                FARule::new(State::new(5), Some('a'), State::new(6)),
+                FARule::new(State::new(6), Some('a'), State::new(4)),
+            ]);
+
+            assert_eq!(
+                vec![State::new(2), State::new(4)]
+                    .into_iter()
+                    .collect::<HashSet<State>>(),
+                book.next_state(&vec![State::new(1)].into_iter().collect(), None)
             );
         }
     }
@@ -164,20 +184,20 @@ mod test {
     #[test]
     fn test_nfa_accepting() {
         let book = NFARulebook::new(vec![
-            FARule::new(1, Some('a'), 1),
-            FARule::new(1, Some('b'), 1),
-            FARule::new(1, Some('b'), 2),
-            FARule::new(2, Some('a'), 3),
-            FARule::new(2, Some('b'), 3),
-            FARule::new(3, Some('a'), 4),
-            FARule::new(3, Some('b'), 4),
+            FARule::new(State::new(1), Some('a'), State::new(1)),
+            FARule::new(State::new(1), Some('b'), State::new(1)),
+            FARule::new(State::new(1), Some('b'), State::new(2)),
+            FARule::new(State::new(2), Some('a'), State::new(3)),
+            FARule::new(State::new(2), Some('b'), State::new(3)),
+            FARule::new(State::new(3), Some('a'), State::new(4)),
+            FARule::new(State::new(3), Some('b'), State::new(4)),
         ]);
 
         assert_eq!(
             false,
             NFA::new(
-                vec![1].into_iter().collect::<HashSet<i32>>(),
-                &vec![4],
+                vec![State::new(1)].into_iter().collect::<HashSet<State>>(),
+                &vec![State::new(4)],
                 &book
             )
             .accepting()
@@ -185,8 +205,10 @@ mod test {
         assert_eq!(
             true,
             NFA::new(
-                vec![1, 2, 4].into_iter().collect::<HashSet<i32>>(),
-                &vec![4],
+                vec![State::new(1), State::new(2), State::new(4)]
+                    .into_iter()
+                    .collect::<HashSet<State>>(),
+                &vec![State::new(4)],
                 &book
             )
             .accepting()
@@ -196,19 +218,19 @@ mod test {
     #[test]
     fn test_nfa_read_string() {
         let book = NFARulebook::new(vec![
-            FARule::new(1, Some('a'), 1),
-            FARule::new(1, Some('b'), 1),
-            FARule::new(1, Some('b'), 2),
-            FARule::new(2, Some('a'), 3),
-            FARule::new(2, Some('b'), 3),
-            FARule::new(3, Some('a'), 4),
-            FARule::new(3, Some('b'), 4),
+            FARule::new(State::new(1), Some('a'), State::new(1)),
+            FARule::new(State::new(1), Some('b'), State::new(1)),
+            FARule::new(State::new(1), Some('b'), State::new(2)),
+            FARule::new(State::new(2), Some('a'), State::new(3)),
+            FARule::new(State::new(2), Some('b'), State::new(3)),
+            FARule::new(State::new(3), Some('a'), State::new(4)),
+            FARule::new(State::new(3), Some('b'), State::new(4)),
         ]);
 
         {
-            let accept_states = vec![4];
+            let accept_states = vec![State::new(4)];
             let mut nfa = NFA::new(
-                vec![1].into_iter().collect::<HashSet<i32>>(),
+                vec![State::new(1)].into_iter().collect::<HashSet<State>>(),
                 &accept_states,
                 &book,
             );
@@ -217,9 +239,9 @@ mod test {
             assert_eq!(true, nfa.accepting());
         }
         {
-            let accept_states = vec![4];
+            let accept_states = vec![State::new(4)];
             let mut nfa = NFA::new(
-                vec![1].into_iter().collect::<HashSet<i32>>(),
+                vec![State::new(1)].into_iter().collect::<HashSet<State>>(),
                 &accept_states,
                 &book,
             );
@@ -233,17 +255,17 @@ mod test {
     fn test_nfa_design() {
         {
             let rule = NFARulebook::new(vec![
-                FARule::new(1, Some('a'), 1),
-                FARule::new(1, Some('b'), 1),
-                FARule::new(1, Some('b'), 2),
-                FARule::new(2, Some('a'), 3),
-                FARule::new(2, Some('b'), 3),
-                FARule::new(3, Some('a'), 4),
-                FARule::new(3, Some('b'), 4),
+                FARule::new(State::new(1), Some('a'), State::new(1)),
+                FARule::new(State::new(1), Some('b'), State::new(1)),
+                FARule::new(State::new(1), Some('b'), State::new(2)),
+                FARule::new(State::new(2), Some('a'), State::new(3)),
+                FARule::new(State::new(2), Some('b'), State::new(3)),
+                FARule::new(State::new(3), Some('a'), State::new(4)),
+                FARule::new(State::new(3), Some('b'), State::new(4)),
             ]);
 
-            let accept_statuses = vec![4];
-            let design = NFADesign::new(1, &accept_statuses, &rule);
+            let accept_statuses = vec![State::new(4)];
+            let design = NFADesign::new(State::new(1), &accept_statuses, &rule);
 
             assert_eq!(true, design.accept("bab"));
             assert_eq!(true, design.accept("bbbbb"));
@@ -251,17 +273,17 @@ mod test {
         }
         {
             let rule = NFARulebook::new(vec![
-                FARule::new(1, None, 2),
-                FARule::new(1, None, 4),
-                FARule::new(2, Some('a'), 3),
-                FARule::new(3, Some('a'), 2),
-                FARule::new(4, Some('a'), 5),
-                FARule::new(5, Some('a'), 6),
-                FARule::new(6, Some('a'), 4),
+                FARule::new(State::new(1), None, State::new(2)),
+                FARule::new(State::new(1), None, State::new(4)),
+                FARule::new(State::new(2), Some('a'), State::new(3)),
+                FARule::new(State::new(3), Some('a'), State::new(2)),
+                FARule::new(State::new(4), Some('a'), State::new(5)),
+                FARule::new(State::new(5), Some('a'), State::new(6)),
+                FARule::new(State::new(6), Some('a'), State::new(4)),
             ]);
 
-            let accept_statuses = vec![2, 4];
-            let design = NFADesign::new(1, &accept_statuses, &rule);
+            let accept_statuses = vec![State::new(2), State::new(4)];
+            let design = NFADesign::new(State::new(1), &accept_statuses, &rule);
 
             assert_eq!(false, design.accept("a"));
             assert_eq!(true, design.accept("aa"));
