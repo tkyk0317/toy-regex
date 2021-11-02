@@ -8,31 +8,45 @@ use std::char;
 #[derive(Debug)]
 pub struct Literal {
     character: Option<char>,
+    start_state: State,
+    accept_state: State,
 }
 
 impl Literal {
     pub fn new(c: char) -> Self {
-        Literal { character: Some(c) }
+        Literal {
+            start_state: State::create_at_rnd(),
+            accept_state: State::create_at_rnd(),
+            character: Some(c),
+        }
     }
 }
 
 impl BasePattern for Literal {
     fn is_match(&self, s: &str) -> bool {
-        let rule = self.rule();
+        let rules = self.rules();
         NFADesign::new(
-            rule[0].state,
-            &vec![rule[0].next_state],
-            &NFARulebook::new(rule),
+            self.start_state,
+            &self.accept_state(),
+            &NFARulebook::new(rules),
         )
         .accept(s)
     }
 
-    fn rule(&self) -> Vec<FARule> {
+    fn rules(&self) -> Vec<FARule> {
         vec![FARule::new(
-            State::create_at_rnd(),
+            self.start_state,
             self.character,
-            State::create_at_rnd(),
+            self.accept_state,
         )]
+    }
+
+    fn accept_state(&self) -> Vec<State> {
+        vec![self.accept_state]
+    }
+
+    fn start_state(&self) -> State {
+        self.start_state
     }
 }
 
