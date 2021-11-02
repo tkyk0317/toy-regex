@@ -3,3 +3,4 @@ mod concat;
 mod empty;
 mod literal;
 mod or;
+mod repeat;
