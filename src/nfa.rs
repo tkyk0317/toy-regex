@@ -63,10 +63,20 @@ impl<'a> NFA<'a> {
     pub fn read_string(&mut self, s: &str) {
         s.chars().for_each(|c| {
             // ε遷移を行ってから通常遷移
-            let epsilon = self.rulebook.next_state(&self.current_state, None);
-            self.current_state.extend(epsilon);
+            self.trans_epsilon();
             self.current_state = self.rulebook.next_state(&self.current_state, Some(c));
         })
+    }
+
+    fn trans_epsilon(&mut self) {
+        // ε遷移の結果がサブセットにならなくなるまで遷移
+        let epsilon = self.rulebook.next_state(&self.current_state, None);
+        if epsilon.is_subset(&self.current_state) {
+            return;
+        }
+
+        self.current_state.extend(epsilon);
+        self.trans_epsilon();
     }
 }
 
