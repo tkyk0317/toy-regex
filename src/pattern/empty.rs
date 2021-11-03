@@ -7,14 +7,12 @@ use crate::pattern::base::BasePattern;
 #[derive(Debug)]
 pub struct Empty {
     start_state: State,
-    accept_state: State,
 }
 
 impl Empty {
     pub fn new() -> Self {
         Empty {
             start_state: State::create_at_rnd(),
-            accept_state: State::create_at_rnd(),
         }
     }
 }
@@ -34,12 +32,12 @@ impl BasePattern for Empty {
         vec![FARule::new(
             self.start_state,
             TransitionType::Character('\0'),
-            self.accept_state,
+            self.start_state,
         )]
     }
 
     fn accept_state(&self) -> Vec<State> {
-        vec![self.accept_state]
+        vec![self.start_state]
     }
 
     fn start_state(&self) -> State {

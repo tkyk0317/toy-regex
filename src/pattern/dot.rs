@@ -5,7 +5,7 @@ use crate::nfa::{NFADesign, NFARulebook};
 use crate::pattern::base::BasePattern;
 
 #[derive(Debug)]
-struct Dot {
+pub struct Dot {
     start_state: State,
     accept_state: State,
 }
