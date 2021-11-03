@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::farule::{FARule, State};
+use crate::farule::{FARule, State, TransitionType};
 use crate::nfa::{NFADesign, NFARulebook};
 use crate::pattern::base::BasePattern;
 
@@ -41,7 +41,7 @@ impl<'a, T: BasePattern, U: BasePattern> BasePattern for Concat<'a, T, U> {
                 .last()
                 .expect("[Concat::rules] Vec::last error")
                 .next_state,
-            None,
+            TransitionType::Epsilon,
             r_rule
                 .first()
                 .expect("[Concat::rules] Vec::first error")

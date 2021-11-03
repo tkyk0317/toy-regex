@@ -1,11 +1,11 @@
 #![allow(dead_code)]
 
-use crate::farule::{FARule, State};
+use crate::farule::{FARule, State, TransitionType};
 use crate::nfa::{NFADesign, NFARulebook};
 use crate::pattern::base::BasePattern;
 
 #[derive(Debug)]
-struct Repeat<'a, T: BasePattern> {
+pub struct Repeat<'a, T: BasePattern> {
     start_state: State,
     element: &'a T,
 }
@@ -32,7 +32,11 @@ impl<'a, T: BasePattern> BasePattern for Repeat<'a, T> {
 
     fn rules(&self) -> Vec<FARule> {
         // 開始状態から要素開始状態へε遷移
-        let ep_rule = FARule::new(self.start_state, None, self.element.start_state());
+        let ep_rule = FARule::new(
+            self.start_state,
+            TransitionType::Epsilon,
+            self.element.start_state(),
+        );
 
         // 各ノードのルールを結合
         let mut rules = vec![ep_rule];
@@ -40,7 +44,7 @@ impl<'a, T: BasePattern> BasePattern for Repeat<'a, T> {
 
         // 要素の受理状態から開始状態へのε遷移を追加
         self.element.accept_state().into_iter().for_each(|s| {
-            let ep_rule = FARule::new(s, None, self.element.start_state());
+            let ep_rule = FARule::new(s, TransitionType::Epsilon, self.element.start_state());
             rules.push(ep_rule);
         });
         rules

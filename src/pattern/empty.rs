@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::farule::{FARule, State};
+use crate::farule::{FARule, State, TransitionType};
 use crate::nfa::{NFADesign, NFARulebook};
 use crate::pattern::base::BasePattern;
 
@@ -31,7 +31,11 @@ impl BasePattern for Empty {
     }
 
     fn rules(&self) -> Vec<FARule> {
-        vec![FARule::new(self.start_state, Some('\0'), self.accept_state)]
+        vec![FARule::new(
+            self.start_state,
+            TransitionType::Character('\0'),
+            self.accept_state,
+        )]
     }
 
     fn accept_state(&self) -> Vec<State> {

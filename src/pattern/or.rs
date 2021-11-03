@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::farule::{FARule, State};
+use crate::farule::{FARule, State, TransitionType};
 use crate::nfa::{NFADesign, NFARulebook};
 use crate::pattern::base::BasePattern;
 
@@ -34,8 +34,16 @@ impl<'a, T: BasePattern, U: BasePattern> BasePattern for Or<'a, T, U> {
 
     fn rules(&self) -> Vec<FARule> {
         // ε遷移により、二つのルールの開始状態へ遷移
-        let ep_to_l_rule = FARule::new(self.start_state, None, self.left.start_state());
-        let ep_to_r_rule = FARule::new(self.start_state, None, self.right.start_state());
+        let ep_to_l_rule = FARule::new(
+            self.start_state,
+            TransitionType::Epsilon,
+            self.left.start_state(),
+        );
+        let ep_to_r_rule = FARule::new(
+            self.start_state,
+            TransitionType::Epsilon,
+            self.right.start_state(),
+        );
 
         // 各ノードのルールを結合
         let mut rules = vec![ep_to_l_rule, ep_to_r_rule];

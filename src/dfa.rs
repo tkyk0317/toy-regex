@@ -83,16 +83,17 @@ impl<'a> DFADesign<'a> {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::farule::TransitionType;
 
     #[test]
     fn test_next_state() {
         let dfa_rule = DFARulebook::new(vec![
-            FARule::new(State::new(1), Some('a'), State::new(2)),
-            FARule::new(State::new(1), Some('b'), State::new(1)),
-            FARule::new(State::new(2), Some('a'), State::new(2)),
-            FARule::new(State::new(2), Some('b'), State::new(3)),
-            FARule::new(State::new(3), Some('a'), State::new(3)),
-            FARule::new(State::new(3), Some('b'), State::new(3)),
+            FARule::new(State::new(1), TransitionType::Character('a'), State::new(2)),
+            FARule::new(State::new(1), TransitionType::Character('b'), State::new(1)),
+            FARule::new(State::new(2), TransitionType::Character('a'), State::new(2)),
+            FARule::new(State::new(2), TransitionType::Character('b'), State::new(3)),
+            FARule::new(State::new(3), TransitionType::Character('a'), State::new(3)),
+            FARule::new(State::new(3), TransitionType::Character('b'), State::new(3)),
         ]);
 
         assert_eq!(State::new(2), dfa_rule.next_state(State::new(1), Some('a')));
@@ -103,12 +104,12 @@ mod test {
     #[test]
     fn test_dfa_accepting() {
         let rule = DFARulebook::new(vec![
-            FARule::new(State::new(1), Some('a'), State::new(2)),
-            FARule::new(State::new(1), Some('b'), State::new(1)),
-            FARule::new(State::new(2), Some('a'), State::new(2)),
-            FARule::new(State::new(2), Some('b'), State::new(3)),
-            FARule::new(State::new(3), Some('a'), State::new(3)),
-            FARule::new(State::new(3), Some('b'), State::new(3)),
+            FARule::new(State::new(1), TransitionType::Character('a'), State::new(2)),
+            FARule::new(State::new(1), TransitionType::Character('b'), State::new(1)),
+            FARule::new(State::new(2), TransitionType::Character('a'), State::new(2)),
+            FARule::new(State::new(2), TransitionType::Character('b'), State::new(3)),
+            FARule::new(State::new(3), TransitionType::Character('a'), State::new(3)),
+            FARule::new(State::new(3), TransitionType::Character('b'), State::new(3)),
         ]);
 
         assert_eq!(
@@ -124,12 +125,12 @@ mod test {
     #[test]
     fn test_dfa_read_string() {
         let rule = DFARulebook::new(vec![
-            FARule::new(State::new(1), Some('a'), State::new(2)),
-            FARule::new(State::new(1), Some('b'), State::new(1)),
-            FARule::new(State::new(2), Some('a'), State::new(2)),
-            FARule::new(State::new(2), Some('b'), State::new(3)),
-            FARule::new(State::new(3), Some('a'), State::new(3)),
-            FARule::new(State::new(3), Some('b'), State::new(3)),
+            FARule::new(State::new(1), TransitionType::Character('a'), State::new(2)),
+            FARule::new(State::new(1), TransitionType::Character('b'), State::new(1)),
+            FARule::new(State::new(2), TransitionType::Character('a'), State::new(2)),
+            FARule::new(State::new(2), TransitionType::Character('b'), State::new(3)),
+            FARule::new(State::new(3), TransitionType::Character('a'), State::new(3)),
+            FARule::new(State::new(3), TransitionType::Character('b'), State::new(3)),
         ]);
         let accept_statuses = vec![State::new(3)];
         let mut dfa = DFA::new(State::new(1), &accept_statuses, &rule);
@@ -141,12 +142,12 @@ mod test {
     #[test]
     fn test_dfa_desgin() {
         let rule = DFARulebook::new(vec![
-            FARule::new(State::new(1), Some('a'), State::new(2)),
-            FARule::new(State::new(1), Some('b'), State::new(1)),
-            FARule::new(State::new(2), Some('a'), State::new(2)),
-            FARule::new(State::new(2), Some('b'), State::new(3)),
-            FARule::new(State::new(3), Some('a'), State::new(3)),
-            FARule::new(State::new(3), Some('b'), State::new(3)),
+            FARule::new(State::new(1), TransitionType::Character('a'), State::new(2)),
+            FARule::new(State::new(1), TransitionType::Character('b'), State::new(1)),
+            FARule::new(State::new(2), TransitionType::Character('a'), State::new(2)),
+            FARule::new(State::new(2), TransitionType::Character('b'), State::new(3)),
+            FARule::new(State::new(3), TransitionType::Character('a'), State::new(3)),
+            FARule::new(State::new(3), TransitionType::Character('b'), State::new(3)),
         ]);
         let accept_statuses = vec![State::new(3)];
         let design = DFADesign::new(State::new(1), &accept_statuses, &rule);

@@ -3,6 +3,7 @@
 use rand::Rng;
 use std::char;
 
+// ステータス
 #[derive(Hash, Clone, Debug, PartialEq, Eq)]
 pub struct State {
     id: usize,
@@ -24,24 +25,43 @@ impl State {
 
 impl Copy for State {}
 
+// 遷移タイプ
+#[derive(Debug)]
+pub enum TransitionType {
+    Character(char), // 通常の文字
+    Epsilon,         // イプシロン遷移
+    Everything,      // 全ての文字を遷移
+}
+
+// 有限オートマトンルール
 #[derive(Debug)]
 pub struct FARule {
     pub state: State,
-    pub character: Option<char>, // Optional型にして、ε遷移を表現
+    pub transition: TransitionType,
     pub next_state: State,
 }
 
 impl FARule {
-    pub fn new(state: State, character: Option<char>, next_state: State) -> Self {
+    pub fn new(state: State, transition: TransitionType, next_state: State) -> Self {
         FARule {
             state: state,
-            character: character,
+            transition: transition,
             next_state: next_state,
         }
     }
 
     pub fn applies_to(&self, state: &State, character: &Option<char>) -> bool {
-        self.state.id == state.id && self.character == *character
+        match *character {
+            Some(c1) => match self.transition {
+                TransitionType::Character(c2) => self.state.id == state.id && c1 == c2,
+                TransitionType::Everything => self.state.id == state.id,
+                _ => false,
+            },
+            None => match self.transition {
+                TransitionType::Epsilon => self.state.id == state.id,
+                _ => false,
+            },
+        }
     }
 
     pub fn follow(&self) -> &State {
@@ -56,13 +76,13 @@ mod test {
     #[test]
     fn test_applies_to() {
         {
-            let rule = FARule::new(State::new(1), Some('a'), State::new(2));
+            let rule = FARule::new(State::new(1), TransitionType::Character('a'), State::new(2));
             assert_eq!(true, rule.applies_to(&State::new(1), &Some('a')));
             assert_eq!(false, rule.applies_to(&State::new(2), &Some('a')));
             assert_eq!(false, rule.applies_to(&State::new(1), &None));
         }
         {
-            let rule = FARule::new(State::new(1), None, State::new(2));
+            let rule = FARule::new(State::new(1), TransitionType::Epsilon, State::new(2));
             assert_eq!(false, rule.applies_to(&State::new(1), &Some('a')));
             assert_eq!(false, rule.applies_to(&State::new(2), &Some('a')));
             assert_eq!(true, rule.applies_to(&State::new(1), &None));

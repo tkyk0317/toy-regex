@@ -113,18 +113,19 @@ impl<'a> NFADesign<'a> {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::farule::TransitionType;
 
     #[test]
     fn test_nfarulebook() {
         {
             let book = NFARulebook::new(vec![
-                FARule::new(State::new(1), Some('a'), State::new(1)),
-                FARule::new(State::new(1), Some('b'), State::new(1)),
-                FARule::new(State::new(1), Some('b'), State::new(2)),
-                FARule::new(State::new(2), Some('a'), State::new(3)),
-                FARule::new(State::new(2), Some('b'), State::new(3)),
-                FARule::new(State::new(3), Some('a'), State::new(4)),
-                FARule::new(State::new(3), Some('b'), State::new(4)),
+                FARule::new(State::new(1), TransitionType::Character('a'), State::new(1)),
+                FARule::new(State::new(1), TransitionType::Character('b'), State::new(1)),
+                FARule::new(State::new(1), TransitionType::Character('b'), State::new(2)),
+                FARule::new(State::new(2), TransitionType::Character('a'), State::new(3)),
+                FARule::new(State::new(2), TransitionType::Character('b'), State::new(3)),
+                FARule::new(State::new(3), TransitionType::Character('a'), State::new(4)),
+                FARule::new(State::new(3), TransitionType::Character('b'), State::new(4)),
             ]);
 
             assert_eq!(
@@ -154,8 +155,8 @@ mod test {
         }
         {
             let book = NFARulebook::new(vec![
-                FARule::new(State::new(1), None, State::new(2)),
-                FARule::new(State::new(1), Some('a'), State::new(2)),
+                FARule::new(State::new(1), TransitionType::Epsilon, State::new(2)),
+                FARule::new(State::new(1), TransitionType::Character('a'), State::new(2)),
             ]);
 
             assert_eq!(
@@ -173,13 +174,13 @@ mod test {
         }
         {
             let book = NFARulebook::new(vec![
-                FARule::new(State::new(1), None, State::new(2)),
-                FARule::new(State::new(1), None, State::new(4)),
-                FARule::new(State::new(2), Some('a'), State::new(3)),
-                FARule::new(State::new(3), Some('a'), State::new(2)),
-                FARule::new(State::new(4), Some('a'), State::new(5)),
-                FARule::new(State::new(5), Some('a'), State::new(6)),
-                FARule::new(State::new(6), Some('a'), State::new(4)),
+                FARule::new(State::new(1), TransitionType::Epsilon, State::new(2)),
+                FARule::new(State::new(1), TransitionType::Epsilon, State::new(4)),
+                FARule::new(State::new(2), TransitionType::Character('a'), State::new(3)),
+                FARule::new(State::new(3), TransitionType::Character('a'), State::new(2)),
+                FARule::new(State::new(4), TransitionType::Character('a'), State::new(5)),
+                FARule::new(State::new(5), TransitionType::Character('a'), State::new(6)),
+                FARule::new(State::new(6), TransitionType::Character('a'), State::new(4)),
             ]);
 
             assert_eq!(
@@ -194,13 +195,13 @@ mod test {
     #[test]
     fn test_nfa_accepting() {
         let book = NFARulebook::new(vec![
-            FARule::new(State::new(1), Some('a'), State::new(1)),
-            FARule::new(State::new(1), Some('b'), State::new(1)),
-            FARule::new(State::new(1), Some('b'), State::new(2)),
-            FARule::new(State::new(2), Some('a'), State::new(3)),
-            FARule::new(State::new(2), Some('b'), State::new(3)),
-            FARule::new(State::new(3), Some('a'), State::new(4)),
-            FARule::new(State::new(3), Some('b'), State::new(4)),
+            FARule::new(State::new(1), TransitionType::Character('a'), State::new(1)),
+            FARule::new(State::new(1), TransitionType::Character('b'), State::new(1)),
+            FARule::new(State::new(1), TransitionType::Character('b'), State::new(2)),
+            FARule::new(State::new(2), TransitionType::Character('a'), State::new(3)),
+            FARule::new(State::new(2), TransitionType::Character('b'), State::new(3)),
+            FARule::new(State::new(3), TransitionType::Character('a'), State::new(4)),
+            FARule::new(State::new(3), TransitionType::Character('b'), State::new(4)),
         ]);
 
         assert_eq!(
@@ -228,13 +229,13 @@ mod test {
     #[test]
     fn test_nfa_read_string() {
         let book = NFARulebook::new(vec![
-            FARule::new(State::new(1), Some('a'), State::new(1)),
-            FARule::new(State::new(1), Some('b'), State::new(1)),
-            FARule::new(State::new(1), Some('b'), State::new(2)),
-            FARule::new(State::new(2), Some('a'), State::new(3)),
-            FARule::new(State::new(2), Some('b'), State::new(3)),
-            FARule::new(State::new(3), Some('a'), State::new(4)),
-            FARule::new(State::new(3), Some('b'), State::new(4)),
+            FARule::new(State::new(1), TransitionType::Character('a'), State::new(1)),
+            FARule::new(State::new(1), TransitionType::Character('b'), State::new(1)),
+            FARule::new(State::new(1), TransitionType::Character('b'), State::new(2)),
+            FARule::new(State::new(2), TransitionType::Character('a'), State::new(3)),
+            FARule::new(State::new(2), TransitionType::Character('b'), State::new(3)),
+            FARule::new(State::new(3), TransitionType::Character('a'), State::new(4)),
+            FARule::new(State::new(3), TransitionType::Character('b'), State::new(4)),
         ]);
 
         {
@@ -265,13 +266,13 @@ mod test {
     fn test_nfa_design() {
         {
             let rule = NFARulebook::new(vec![
-                FARule::new(State::new(1), Some('a'), State::new(1)),
-                FARule::new(State::new(1), Some('b'), State::new(1)),
-                FARule::new(State::new(1), Some('b'), State::new(2)),
-                FARule::new(State::new(2), Some('a'), State::new(3)),
-                FARule::new(State::new(2), Some('b'), State::new(3)),
-                FARule::new(State::new(3), Some('a'), State::new(4)),
-                FARule::new(State::new(3), Some('b'), State::new(4)),
+                FARule::new(State::new(1), TransitionType::Character('a'), State::new(1)),
+                FARule::new(State::new(1), TransitionType::Character('b'), State::new(1)),
+                FARule::new(State::new(1), TransitionType::Character('b'), State::new(2)),
+                FARule::new(State::new(2), TransitionType::Character('a'), State::new(3)),
+                FARule::new(State::new(2), TransitionType::Character('b'), State::new(3)),
+                FARule::new(State::new(3), TransitionType::Character('a'), State::new(4)),
+                FARule::new(State::new(3), TransitionType::Character('b'), State::new(4)),
             ]);
 
             let accept_statuses = vec![State::new(4)];
@@ -283,13 +284,13 @@ mod test {
         }
         {
             let rule = NFARulebook::new(vec![
-                FARule::new(State::new(1), None, State::new(2)),
-                FARule::new(State::new(1), None, State::new(4)),
-                FARule::new(State::new(2), Some('a'), State::new(3)),
-                FARule::new(State::new(3), Some('a'), State::new(2)),
-                FARule::new(State::new(4), Some('a'), State::new(5)),
-                FARule::new(State::new(5), Some('a'), State::new(6)),
-                FARule::new(State::new(6), Some('a'), State::new(4)),
+                FARule::new(State::new(1), TransitionType::Epsilon, State::new(2)),
+                FARule::new(State::new(1), TransitionType::Epsilon, State::new(4)),
+                FARule::new(State::new(2), TransitionType::Character('a'), State::new(3)),
+                FARule::new(State::new(3), TransitionType::Character('a'), State::new(2)),
+                FARule::new(State::new(4), TransitionType::Character('a'), State::new(5)),
+                FARule::new(State::new(5), TransitionType::Character('a'), State::new(6)),
+                FARule::new(State::new(6), TransitionType::Character('a'), State::new(4)),
             ]);
 
             let accept_statuses = vec![State::new(2), State::new(4)];

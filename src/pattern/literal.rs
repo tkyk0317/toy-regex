@@ -1,13 +1,13 @@
 #![allow(dead_code)]
 
-use crate::farule::{FARule, State};
+use crate::farule::{FARule, State, TransitionType};
 use crate::nfa::{NFADesign, NFARulebook};
 use crate::pattern::base::BasePattern;
 use std::char;
 
 #[derive(Debug)]
 pub struct Literal {
-    character: Option<char>,
+    character: char,
     start_state: State,
     accept_state: State,
 }
@@ -17,7 +17,7 @@ impl Literal {
         Literal {
             start_state: State::create_at_rnd(),
             accept_state: State::create_at_rnd(),
-            character: Some(c),
+            character: c,
         }
     }
 }
@@ -36,7 +36,7 @@ impl BasePattern for Literal {
     fn rules(&self) -> Vec<FARule> {
         vec![FARule::new(
             self.start_state,
-            self.character,
+            TransitionType::Character(self.character),
             self.accept_state,
         )]
     }
