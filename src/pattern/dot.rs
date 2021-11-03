@@ -50,7 +50,7 @@ impl BasePattern for Dot {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::pattern::{repeat::Repeat, literal::Literal, concat::Concat};
+    use crate::pattern::{concat::Concat, literal::Literal, repeat::Repeat};
 
     #[test]
     fn test_dot() {

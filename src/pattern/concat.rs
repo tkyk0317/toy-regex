@@ -23,7 +23,7 @@ impl<'a, T: BasePattern, U: BasePattern> BasePattern for Concat<'a, T, U> {
     fn is_match(&self, s: &str) -> bool {
         let rules = self.rules();
         NFADesign::new(
-            self.left.start_state(),
+            self.start_state(),
             &self.accept_state(),
             &NFARulebook::new(rules),
         )
@@ -31,25 +31,18 @@ impl<'a, T: BasePattern, U: BasePattern> BasePattern for Concat<'a, T, U> {
     }
 
     fn rules(&self) -> Vec<FARule> {
-        // 左辺と右辺のルールを結合
-        let mut l_rule = self.left.rules();
-        let r_rule = self.right.rules();
+        // ε遷移を挟んで、左の受理状態とと右の開始状態をつねげる
+        let mut rules: Vec<FARule> = self
+            .left
+            .accept_state()
+            .into_iter()
+            .map(|a| FARule::new(a, TransitionType::Epsilon, self.right.start_state()))
+            .collect();
 
-        // ε遷移を挟んで、左の末尾と右の開始をつねげる
-        let epsilon_rule = FARule::new(
-            l_rule
-                .last()
-                .expect("[Concat::rules] Vec::last error")
-                .next_state,
-            TransitionType::Epsilon,
-            r_rule
-                .first()
-                .expect("[Concat::rules] Vec::first error")
-                .state,
-        );
-        l_rule.push(epsilon_rule);
-        l_rule.extend(r_rule);
-        l_rule
+        // 左辺と右辺のルールを結合
+        rules.extend(self.left.rules());
+        rules.extend(self.right.rules());
+        rules
     }
 
     fn accept_state(&self) -> Vec<State> {
@@ -57,10 +50,7 @@ impl<'a, T: BasePattern, U: BasePattern> BasePattern for Concat<'a, T, U> {
     }
 
     fn start_state(&self) -> State {
-        self.rules()
-            .first()
-            .expect("[Concat::start_state] Vec::first error ")
-            .state
+        self.left.start_state()
     }
 }
 

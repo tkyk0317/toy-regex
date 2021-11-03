@@ -65,7 +65,10 @@ impl<'a> NFA<'a> {
             // ε遷移を行ってから通常遷移
             self.trans_epsilon();
             self.current_state = self.rulebook.next_state(&self.current_state, Some(c));
-        })
+        });
+
+        // 読み込み完了後、ε遷移
+        self.trans_epsilon();
     }
 
     fn trans_epsilon(&mut self) {
