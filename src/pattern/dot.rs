@@ -50,13 +50,36 @@ impl BasePattern for Dot {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::pattern::{repeat::Repeat, literal::Literal, concat::Concat};
 
     #[test]
     fn test_dot() {
-        let d = Dot::new();
+        {
+            let d = Dot::new();
 
-        assert_eq!(true, d.is_match("a"));
-        assert_eq!(true, d.is_match("d"));
-        assert_eq!(false, d.is_match(""));
+            assert_eq!(true, d.is_match("a"));
+            assert_eq!(true, d.is_match("d"));
+            assert_eq!(false, d.is_match(""));
+        }
+        {
+            let d = Dot::new();
+            let r = Repeat::new(&d);
+
+            assert_eq!(true, r.is_match("a"));
+            assert_eq!(true, r.is_match("aaaaaaaaaaaaaa"));
+            assert_eq!(true, r.is_match("b"));
+            assert_eq!(true, r.is_match(""));
+        }
+        {
+            let l = Literal::new('a');
+            let d = Dot::new();
+            let c = Concat::new(&l, &d);
+
+            assert_eq!(true, c.is_match("ab"));
+            assert_eq!(true, c.is_match("az"));
+            assert_eq!(false, c.is_match("abc"));
+            assert_eq!(false, c.is_match("a"));
+            assert_eq!(false, c.is_match(""));
+        }
     }
 }
