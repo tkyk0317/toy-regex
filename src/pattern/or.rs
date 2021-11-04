@@ -5,7 +5,7 @@ use crate::nfa::{NFADesign, NFARulebook};
 use crate::pattern::base::BasePattern;
 
 #[derive(Debug)]
-struct Or<'a, T: BasePattern, U: BasePattern> {
+pub struct Or<'a, T: BasePattern, U: BasePattern> {
     start_state: State,
     left: &'a T,
     right: &'a U,

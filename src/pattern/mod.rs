@@ -8,7 +8,9 @@ mod repeat;
 
 #[cfg(test)]
 mod test {
-    use crate::pattern::{base::BasePattern, concat::Concat, literal::Literal, repeat::Repeat};
+    use crate::pattern::{
+        base::BasePattern, concat::Concat, empty::Empty, literal::Literal, or::Or, repeat::Repeat,
+    };
 
     // 正規表現「a+」
     #[test]
@@ -24,5 +26,32 @@ mod test {
         assert_eq!(false, con.is_match(""));
         assert_eq!(false, con.is_match("b"));
         assert_eq!(false, con.is_match("bb"));
+    }
+
+    // 正規表現「?」
+    #[test]
+    fn test_question_regex() {
+        // a?のテスト
+        {
+            let a = Literal::new('a');
+            let e = Empty::new();
+            let or = Or::new(&a, &e);
+
+            assert_eq!(true, or.is_match("a"));
+            assert_eq!(true, or.is_match(""));
+            assert_eq!(false, or.is_match("aa"));
+        }
+        // a?bのテスト
+        {
+            let a = Literal::new('a');
+            let b = Literal::new('b');
+            let c = Concat::new(&a, &b);
+            let or = Or::new(&c, &b);
+
+            assert_eq!(true, or.is_match("ab"));
+            assert_eq!(true, or.is_match("b"));
+            assert_eq!(false, or.is_match("aab"));
+            assert_eq!(false, or.is_match(""));
+        }
     }
 }
