@@ -4,7 +4,8 @@ use crate::farule::{FARule, State};
 use std::char;
 use std::vec::Vec;
 
-struct DFARulebook {
+#[derive(Debug)]
+pub struct DFARulebook {
     rules: Vec<FARule>,
 }
 
@@ -58,14 +59,18 @@ impl<'a> DFA<'a> {
     }
 }
 
-struct DFADesign<'a> {
+pub struct DFADesign<'a> {
     start_state: State,
     accept_states: &'a Vec<State>,
     rulebook: &'a DFARulebook,
 }
 
 impl<'a> DFADesign<'a> {
-    fn new(start_state: State, accept_states: &'a Vec<State>, rulebook: &'a DFARulebook) -> Self {
+    pub fn new(
+        start_state: State,
+        accept_states: &'a Vec<State>,
+        rulebook: &'a DFARulebook,
+    ) -> Self {
         DFADesign {
             start_state: start_state,
             accept_states: accept_states,

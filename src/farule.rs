@@ -4,7 +4,7 @@ use rand::Rng;
 use std::char;
 
 // ステータス
-#[derive(Hash, Clone, Debug, PartialEq, Eq)]
+#[derive(Hash, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct State {
     id: usize,
 }
@@ -26,7 +26,7 @@ impl State {
 impl Copy for State {}
 
 // 遷移タイプ
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum TransitionType {
     Character(char), // 通常の文字
     Epsilon,         // イプシロン遷移
@@ -34,7 +34,7 @@ pub enum TransitionType {
 }
 
 // 有限オートマトンルール
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct FARule {
     pub state: State,
     pub transition: TransitionType,
