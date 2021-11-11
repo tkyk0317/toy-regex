@@ -226,24 +226,19 @@ impl<'a> NFAConverter<'a> {
         // DFAルール作成
         let mut st_set = HashSet::new();
         st_set.insert(self.start_state);
-        let dfa_rulebook = self.convert_rule(&st_set);
+        let dfa_rulebook = self.to_dfa_rulebook(&st_set);
 
         // マップされた情報からスタートと受理状態を抽出
         let dfa_start = self.state_map.get_start();
-        let dfa_accept: Vec<State> = self
-            .accept_states
-            .into_iter()
-            .map(|s| self.state_map.get_include_state(s))
-            .flatten()
-            .collect();
+        let dfa_accept = self.to_dfa_accept();
 
         // DFAを生成し、マッチ実行
         let dfa = DFADesign::new(dfa_start, &dfa_accept, &dfa_rulebook);
         dfa.accept(str)
     }
 
-    // ε遷移削除
-    fn convert_rule(&mut self, start: &HashSet<State>) -> DFARulebook {
+    // DFAルール作成
+    fn to_dfa_rulebook(&mut self, start: &HashSet<State>) -> DFARulebook {
         let mut dtran = vec![];
 
         // ε遷移を行い、各入力文字に対する遷移を行う
@@ -253,10 +248,7 @@ impl<'a> NFAConverter<'a> {
         queue.push_back(ep_start.clone());
 
         // イプシロン遷移後の状態を開始状態として登録
-        ep_start
-            .clone()
-            .into_iter()
-            .for_each(|s| self.state_map.insert_start(s));
+        self.save_start_state(&ep_start);
 
         while !queue.is_empty() {
             // 探索済み配列へ追加
@@ -332,6 +324,23 @@ impl<'a> NFAConverter<'a> {
         let mut nfa = NFA::new(state, &accept_state, self.rulebook);
         nfa.read_string(s);
         nfa.current_state()
+    }
+
+    // DFA開始状態を登録
+    fn save_start_state(&mut self, start: &HashSet<State>) {
+        start
+            .clone()
+            .into_iter()
+            .for_each(|s| self.state_map.insert_start(s));
+    }
+
+    // DFA受理状態を取得
+    fn to_dfa_accept(&self) -> Vec<State> {
+        self.accept_states
+            .into_iter()
+            .map(|s| self.state_map.get_include_state(s))
+            .flatten()
+            .collect()
     }
 }
 
