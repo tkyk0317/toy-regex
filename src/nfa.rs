@@ -226,7 +226,7 @@ impl<'a> NFAConverter<'a> {
         // DFAルール作成
         let mut st_set = HashSet::new();
         st_set.insert(self.start_state);
-        let dfa_rulebook = self.convert(&st_set);
+        let dfa_rulebook = self.convert_rule(&st_set);
 
         // マップされた情報からスタートと受理状態を抽出
         let dfa_start = self.state_map.get_start();
@@ -243,7 +243,7 @@ impl<'a> NFAConverter<'a> {
     }
 
     // ε遷移削除
-    fn convert(&mut self, start: &HashSet<State>) -> DFARulebook {
+    fn convert_rule(&mut self, start: &HashSet<State>) -> DFARulebook {
         let mut dtran = vec![];
 
         // ε遷移を行い、各入力文字に対する遷移を行う
@@ -644,9 +644,6 @@ mod test {
 
             let accept_statuses = vec![State::new(2), State::new(4)];
             let mut converter = NFAConverter::new(State::new(1), &accept_statuses, &rule);
-
-            converter.convert(&vec![State::new(1)].into_iter().collect::<HashSet<State>>());
-            println!("{:?}", converter.state_map);
 
             assert_eq!(false, converter.accept("a"));
             assert_eq!(true, converter.accept("aa"));
