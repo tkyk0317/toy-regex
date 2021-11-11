@@ -72,7 +72,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "regex"
+name = "toy-regex"
 version = "0.1.0"
 dependencies = [
  "rand",
