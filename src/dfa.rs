@@ -14,15 +14,15 @@ impl DFARulebook {
         DFARulebook { rules: rules }
     }
 
-    pub fn next_state(&self, state: State, character: Option<char>) -> State {
-        *self.rule_for(&state, character).follow()
+    pub fn next_state(&self, state: State, character: Option<char>) -> Option<State> {
+        match self.rule_for(&state, character) {
+            Some(r) => Some(*r.follow()),
+            _ => None,
+        }
     }
 
-    fn rule_for(&self, state: &State, character: Option<char>) -> &FARule {
-        self.rules
-            .iter()
-            .find(|r| r.applies_to(state, &character))
-            .unwrap()
+    fn rule_for(&self, state: &State, character: Option<char>) -> Option<&FARule> {
+        self.rules.iter().find(|r| r.applies_to(state, &character))
     }
 }
 
@@ -52,10 +52,16 @@ impl<'a> DFA<'a> {
             .is_some()
     }
 
-    pub fn read_string(&mut self, s: &str) {
-        s.chars().for_each(|c| {
-            self.current_state = self.rulebook.next_state(self.current_state, Some(c))
-        })
+    pub fn read_string(&mut self, s: &str) -> Result<(), &str> {
+        for c in s.chars() {
+            if let Some(next_state) = self.rulebook.next_state(self.current_state, Some(c)) {
+                self.current_state = next_state
+            } else {
+                return Err("");
+            }
+        }
+
+        Ok(())
     }
 }
 
@@ -80,8 +86,10 @@ impl<'a> DFADesign<'a> {
 
     pub fn accept(&self, s: &str) -> bool {
         let mut dfa = DFA::new(self.start_state, self.accept_states, self.rulebook);
-        dfa.read_string(s);
-        dfa.accepting()
+        match dfa.read_string(s) {
+            Ok(_) => dfa.accepting(),
+            Err(_) => false,
+        }
     }
 }
 
@@ -101,9 +109,18 @@ mod test {
             FARule::new(State::new(3), TransitionType::Character('b'), State::new(3)),
         ]);
 
-        assert_eq!(State::new(2), dfa_rule.next_state(State::new(1), Some('a')));
-        assert_eq!(State::new(1), dfa_rule.next_state(State::new(1), Some('b')));
-        assert_eq!(State::new(3), dfa_rule.next_state(State::new(2), Some('b')));
+        assert_eq!(
+            Some(State::new(2)),
+            dfa_rule.next_state(State::new(1), Some('a'))
+        );
+        assert_eq!(
+            Some(State::new(1)),
+            dfa_rule.next_state(State::new(1), Some('b'))
+        );
+        assert_eq!(
+            Some(State::new(3)),
+            dfa_rule.next_state(State::new(2), Some('b'))
+        );
     }
 
     #[test]
