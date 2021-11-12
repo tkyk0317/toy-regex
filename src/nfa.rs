@@ -159,7 +159,7 @@ impl StateMap {
         *self
             .map
             .get(&self.key(&self.start))
-            .expect("[StateMap::get_start] get start is error")
+            .unwrap_or_else(|| panic!("[StateMap::get_start] get start is error (Start: {:?})", self.start))
     }
 
     // 指定された状態に合致する状態を取得
@@ -167,7 +167,7 @@ impl StateMap {
         *self
             .map
             .get(&self.key(state))
-            .expect("[StateMap::get_state] get state is error")
+            .unwrap_or_else(|| panic!("[StateMap::get_state] get state is error (State: {:?})", state))
     }
 
     // 指定された状態が集合に含まれているものを取得
@@ -254,7 +254,7 @@ impl<'a> NFAConverter<'a> {
             // 探索済み配列へ追加
             let set = queue
                 .pop_front()
-                .expect("[NFAConverter::expand_epsilon] pop_front is error");
+                .unwrap_or_else(|| panic!("[NFAConverter::expand_epsilon] pop_front is error (queue: {:?})", queue));
             searched_set.push(set.clone());
 
             // 各文字から遷移する集合を取得
