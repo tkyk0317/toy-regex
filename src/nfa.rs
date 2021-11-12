@@ -13,17 +13,14 @@ pub struct NFARulebook {
 
 impl NFARulebook {
     pub fn new(rules: Vec<FARule>) -> Self {
-        NFARulebook { rules: rules }
+        NFARulebook { rules }
     }
 
     // ルールに適用されている入力文字の配列を取得
     pub fn alphabet(&self) -> HashSet<char> {
         self.rules
             .iter()
-            .filter(|r| match r.transition {
-                TransitionType::Character(_c) => true,
-                _ => false,
-            })
+            .filter(|r| matches!(r.transition, TransitionType::Character(_c)))
             .map(|r| match r.transition {
                 TransitionType::Character(c) => c,
                 _ => panic!("[NFARulebook::alphabet] must not reach"),
@@ -52,22 +49,22 @@ impl NFARulebook {
     }
 }
 
-struct NFA<'a> {
+struct Nfa<'a> {
     current_state: HashSet<State>,
-    accept_states: &'a Vec<State>,
+    accept_states: &'a [State],
     rulebook: &'a NFARulebook,
 }
 
-impl<'a> NFA<'a> {
+impl<'a> Nfa<'a> {
     pub fn new(
         current_state: HashSet<State>,
-        accept_states: &'a Vec<State>,
+        accept_states: &'a [State],
         rulebook: &'a NFARulebook,
     ) -> Self {
-        NFA {
-            current_state: current_state,
-            accept_states: accept_states,
-            rulebook: rulebook,
+        Nfa {
+            current_state,
+            accept_states,
+            rulebook,
         }
     }
 
@@ -78,8 +75,7 @@ impl<'a> NFA<'a> {
     pub fn accepting(&self) -> bool {
         self.current_state
             .iter()
-            .find(|c| self.accept_states.iter().find(|a| a == c).is_some())
-            .is_some()
+            .any(|c| self.accept_states.iter().any(|a| a == c))
     }
 
     pub fn read_string(&mut self, s: &str) {
@@ -108,20 +104,16 @@ impl<'a> NFA<'a> {
 #[derive(Debug)]
 pub struct NFADesign<'a> {
     start_state: State,
-    accept_states: &'a Vec<State>,
+    accept_states: &'a [State],
     rulebook: &'a NFARulebook,
 }
 
 impl<'a> NFADesign<'a> {
-    pub fn new(
-        start_state: State,
-        accept_states: &'a Vec<State>,
-        rulebook: &'a NFARulebook,
-    ) -> Self {
+    pub fn new(start_state: State, accept_states: &'a [State], rulebook: &'a NFARulebook) -> Self {
         NFADesign {
-            start_state: start_state,
-            accept_states: accept_states,
-            rulebook: rulebook,
+            start_state,
+            accept_states,
+            rulebook,
         }
     }
 
@@ -129,7 +121,7 @@ impl<'a> NFADesign<'a> {
         let mut start_state = HashSet::new();
         start_state.insert(self.start_state);
 
-        let mut nfa = NFA::new(start_state, self.accept_states, self.rulebook);
+        let mut nfa = Nfa::new(start_state, self.accept_states, self.rulebook);
         nfa.read_string(s);
         nfa.accepting()
     }
@@ -156,18 +148,22 @@ impl StateMap {
 
     // 開始集合に対応するState取得
     pub fn get_start(&self) -> State {
-        *self
-            .map
-            .get(&self.key(&self.start))
-            .unwrap_or_else(|| panic!("[StateMap::get_start] get start is error (Start: {:?})", self.start))
+        *self.map.get(&self.key(&self.start)).unwrap_or_else(|| {
+            panic!(
+                "[StateMap::get_start] get start is error (Start: {:?})",
+                self.start
+            )
+        })
     }
 
     // 指定された状態に合致する状態を取得
     pub fn get_state(&self, state: &HashSet<State>) -> State {
-        *self
-            .map
-            .get(&self.key(state))
-            .unwrap_or_else(|| panic!("[StateMap::get_state] get state is error (State: {:?})", state))
+        *self.map.get(&self.key(state)).unwrap_or_else(|| {
+            panic!(
+                "[StateMap::get_state] get state is error (State: {:?})",
+                state
+            )
+        })
     }
 
     // 指定された状態が集合に含まれているものを取得
@@ -203,20 +199,20 @@ impl StateMap {
 }
 
 #[derive(Debug)]
-struct NFAConverter<'a> {
+pub struct NFAConverter<'a> {
     start_state: State,
-    accept_states: &'a Vec<State>,
+    accept_states: &'a [State],
     rulebook: &'a NFARulebook,
     state_map: StateMap,
 }
 
 type DtranRule = (HashSet<State>, char, HashSet<State>);
 impl<'a> NFAConverter<'a> {
-    pub fn new(start: State, accept_states: &'a Vec<State>, rulebook: &'a NFARulebook) -> Self {
+    pub fn new(start: State, accept_states: &'a [State], rulebook: &'a NFARulebook) -> Self {
         NFAConverter {
             start_state: start,
-            accept_states: accept_states,
-            rulebook: rulebook,
+            accept_states,
+            rulebook,
             state_map: StateMap::new(),
         }
     }
@@ -226,7 +222,7 @@ impl<'a> NFAConverter<'a> {
         // DFAルール作成
         let mut st_set = HashSet::new();
         st_set.insert(self.start_state);
-        let dfa_rulebook = self.to_dfa_rulebook(&st_set);
+        let dfa_rulebook = self.dfa_rulebook(&st_set);
 
         // マップされた情報からスタートと受理状態を抽出
         let dfa_start = self.state_map.get_start();
@@ -238,13 +234,13 @@ impl<'a> NFAConverter<'a> {
     }
 
     // DFAルール作成
-    fn to_dfa_rulebook(&mut self, start: &HashSet<State>) -> DFARulebook {
+    fn dfa_rulebook(&mut self, start: &HashSet<State>) -> DFARulebook {
         let mut dtran = vec![];
 
         // ε遷移を行い、各入力文字に対する遷移を行う
         let mut queue = VecDeque::new();
         let mut searched_set = vec![];
-        let ep_start = self.epsilon(&start);
+        let ep_start = self.epsilon(start);
         queue.push_back(ep_start.clone());
 
         // イプシロン遷移後の状態を開始状態として登録
@@ -252,9 +248,12 @@ impl<'a> NFAConverter<'a> {
 
         while !queue.is_empty() {
             // 探索済み配列へ追加
-            let set = queue
-                .pop_front()
-                .unwrap_or_else(|| panic!("[NFAConverter::expand_epsilon] pop_front is error (queue: {:?})", queue));
+            let set = queue.pop_front().unwrap_or_else(|| {
+                panic!(
+                    "[NFAConverter::expand_epsilon] pop_front is error (queue: {:?})",
+                    queue
+                )
+            });
             searched_set.push(set.clone());
 
             // 各文字から遷移する集合を取得
@@ -265,7 +264,7 @@ impl<'a> NFAConverter<'a> {
                 // 遷移後の状態を探索していなければ、探索配列へ登録
                 dtran.push((set.clone(), c, ep_next_set.clone()));
                 if !searched_set.contains(&ep_next_set) {
-                    queue.push_back(ep_next_set.clone());
+                    queue.push_back(ep_next_set);
                 }
             })
         }
@@ -290,11 +289,11 @@ impl<'a> NFAConverter<'a> {
                 }
 
                 // FARuleを作成
-                return FARule::new(
+                FARule::new(
                     self.state_map.get_state(&st_state),
                     TransitionType::Character(character),
                     self.state_map.get_state(&next_state),
-                );
+                )
             })
             .collect()
     }
@@ -314,14 +313,14 @@ impl<'a> NFAConverter<'a> {
     }
 
     // 探索済み判定
-    fn is_searched(&self, searched_set: &Vec<HashSet<State>>, set: &HashSet<State>) -> bool {
-        searched_set.iter().find(|s| *s == set).is_some()
+    fn is_searched(&self, searched_set: &[HashSet<State>], set: &HashSet<State>) -> bool {
+        searched_set.iter().any(|s| s == set)
     }
 
     // 与えられた状態から遷移可能な集合を返す
     fn next_state(&self, state: HashSet<State>, s: &str) -> HashSet<State> {
         let accept_state = vec![];
-        let mut nfa = NFA::new(state, &accept_state, self.rulebook);
+        let mut nfa = Nfa::new(state, &accept_state, self.rulebook);
         nfa.read_string(s);
         nfa.current_state()
     }
@@ -337,7 +336,7 @@ impl<'a> NFAConverter<'a> {
     // DFA受理状態を取得
     fn to_dfa_accept(&self) -> Vec<State> {
         self.accept_states
-            .into_iter()
+            .iter()
             .map(|s| self.state_map.get_include_state(s))
             .flatten()
             .collect()
@@ -457,7 +456,7 @@ mod test {
 
         assert_eq!(
             false,
-            NFA::new(
+            Nfa::new(
                 vec![State::new(1)].into_iter().collect::<HashSet<State>>(),
                 &vec![State::new(4)],
                 &book
@@ -466,7 +465,7 @@ mod test {
         );
         assert_eq!(
             true,
-            NFA::new(
+            Nfa::new(
                 vec![State::new(1), State::new(2), State::new(4)]
                     .into_iter()
                     .collect::<HashSet<State>>(),
@@ -491,7 +490,7 @@ mod test {
 
         {
             let accept_states = vec![State::new(4)];
-            let mut nfa = NFA::new(
+            let mut nfa = Nfa::new(
                 vec![State::new(1)].into_iter().collect::<HashSet<State>>(),
                 &accept_states,
                 &book,
@@ -502,7 +501,7 @@ mod test {
         }
         {
             let accept_states = vec![State::new(4)];
-            let mut nfa = NFA::new(
+            let mut nfa = Nfa::new(
                 vec![State::new(1)].into_iter().collect::<HashSet<State>>(),
                 &accept_states,
                 &book,

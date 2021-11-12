@@ -12,10 +12,7 @@ pub struct Concat<'a, T: BasePattern, U: BasePattern> {
 
 impl<'a, T: BasePattern, U: BasePattern> Concat<'a, T, U> {
     pub fn new(left: &'a T, right: &'a U) -> Self {
-        Concat {
-            left: left,
-            right: right,
-        }
+        Concat { left, right }
     }
 }
 

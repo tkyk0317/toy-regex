@@ -15,8 +15,8 @@ impl<'a, T: BasePattern, U: BasePattern> Or<'a, T, U> {
     pub fn new(left: &'a T, right: &'a U) -> Self {
         Or {
             start_state: State::create_at_rnd(),
-            left: left,
-            right: right,
+            left,
+            right,
         }
     }
 }

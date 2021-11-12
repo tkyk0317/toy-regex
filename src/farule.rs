@@ -11,7 +11,7 @@ pub struct State {
 
 impl State {
     pub fn new(id: usize) -> Self {
-        State { id: id }
+        State { id }
     }
 
     // IDを指定せず、作成する
@@ -44,9 +44,9 @@ pub struct FARule {
 impl FARule {
     pub fn new(state: State, transition: TransitionType, next_state: State) -> Self {
         FARule {
-            state: state,
-            transition: transition,
-            next_state: next_state,
+            state,
+            transition,
+            next_state,
         }
     }
 

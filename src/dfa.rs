@@ -11,14 +11,11 @@ pub struct DFARulebook {
 
 impl DFARulebook {
     pub fn new(rules: Vec<FARule>) -> Self {
-        DFARulebook { rules: rules }
+        DFARulebook { rules }
     }
 
     pub fn next_state(&self, state: State, character: Option<char>) -> Option<State> {
-        match self.rule_for(&state, character) {
-            Some(r) => Some(*r.follow()),
-            _ => None,
-        }
+        self.rule_for(&state, character).map(|r| *r.follow())
     }
 
     fn rule_for(&self, state: &State, character: Option<char>) -> Option<&FARule> {
@@ -26,30 +23,27 @@ impl DFARulebook {
     }
 }
 
-struct DFA<'a> {
+struct Dfa<'a> {
     current_state: State,
-    accept_states: &'a Vec<State>,
+    accept_states: &'a [State],
     rulebook: &'a DFARulebook,
 }
 
-impl<'a> DFA<'a> {
+impl<'a> Dfa<'a> {
     pub fn new(
         current_state: State,
-        accept_states: &'a Vec<State>,
+        accept_states: &'a [State],
         rulebook: &'a DFARulebook,
     ) -> Self {
-        DFA {
-            current_state: current_state,
-            accept_states: accept_states,
-            rulebook: rulebook,
+        Dfa {
+            current_state,
+            accept_states,
+            rulebook,
         }
     }
 
     pub fn accepting(&self) -> bool {
-        self.accept_states
-            .iter()
-            .find(|s| **s == self.current_state)
-            .is_some()
+        self.accept_states.iter().any(|s| *s == self.current_state)
     }
 
     pub fn read_string(&mut self, s: &str) -> Result<(), &str> {
@@ -67,25 +61,21 @@ impl<'a> DFA<'a> {
 
 pub struct DFADesign<'a> {
     start_state: State,
-    accept_states: &'a Vec<State>,
+    accept_states: &'a [State],
     rulebook: &'a DFARulebook,
 }
 
 impl<'a> DFADesign<'a> {
-    pub fn new(
-        start_state: State,
-        accept_states: &'a Vec<State>,
-        rulebook: &'a DFARulebook,
-    ) -> Self {
+    pub fn new(start_state: State, accept_states: &'a [State], rulebook: &'a DFARulebook) -> Self {
         DFADesign {
-            start_state: start_state,
-            accept_states: accept_states,
-            rulebook: rulebook,
+            start_state,
+            accept_states,
+            rulebook,
         }
     }
 
     pub fn accept(&self, s: &str) -> bool {
-        let mut dfa = DFA::new(self.start_state, self.accept_states, self.rulebook);
+        let mut dfa = Dfa::new(self.start_state, self.accept_states, self.rulebook);
         match dfa.read_string(s) {
             Ok(_) => dfa.accepting(),
             Err(_) => false,
@@ -136,11 +126,11 @@ mod test {
 
         assert_eq!(
             true,
-            DFA::new(State::new(1), &vec![State::new(1), State::new(3)], &rule).accepting()
+            Dfa::new(State::new(1), &vec![State::new(1), State::new(3)], &rule).accepting()
         );
         assert_eq!(
             true,
-            DFA::new(State::new(1), &vec![State::new(1)], &rule).accepting()
+            Dfa::new(State::new(1), &vec![State::new(1)], &rule).accepting()
         );
     }
 
@@ -155,7 +145,7 @@ mod test {
             FARule::new(State::new(3), TransitionType::Character('b'), State::new(3)),
         ]);
         let accept_statuses = vec![State::new(3)];
-        let mut dfa = DFA::new(State::new(1), &accept_statuses, &rule);
+        let mut dfa = Dfa::new(State::new(1), &accept_statuses, &rule);
         dfa.read_string("baaab");
 
         assert_eq!(true, dfa.accepting());

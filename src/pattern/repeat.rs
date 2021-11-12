@@ -14,7 +14,7 @@ impl<'a, T: BasePattern> Repeat<'a, T> {
     pub fn new(element: &'a T) -> Self {
         Repeat {
             start_state: State::create_at_rnd(),
-            element: element,
+            element,
         }
     }
 }
