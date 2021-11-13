@@ -204,6 +204,7 @@ pub struct NFAConverter<'a> {
     accept_states: &'a [State],
     rulebook: &'a NFARulebook,
     state_map: StateMap,
+    dfa_rulebook: Option<DFARulebook>,
 }
 
 type DtranRule = (HashSet<State>, char, HashSet<State>);
@@ -214,23 +215,32 @@ impl<'a> NFAConverter<'a> {
             accept_states,
             rulebook,
             state_map: StateMap::new(),
+            dfa_rulebook: None,
         }
     }
 
-    // NFA→DFA変換後の受理状態を返す
-    pub fn accept(&mut self, str: &str) -> bool {
+    // DFAルールの作成
+    pub fn build(&mut self) -> &Self {
         // DFAルール作成
         let mut st_set = HashSet::new();
         st_set.insert(self.start_state);
-        let dfa_rulebook = self.dfa_rulebook(&st_set);
+        self.dfa_rulebook = Some(self.dfa_rulebook(&st_set));
 
-        // マップされた情報からスタートと受理状態を抽出
-        let dfa_start = self.state_map.get_start();
-        let dfa_accept = self.to_dfa_accept();
+        self
+    }
 
+    // NFA→DFA変換後の受理状態を返す
+    pub fn accept(&self, str: &str) -> bool {
         // DFAを生成し、マッチ実行
-        let dfa = DFADesign::new(dfa_start, &dfa_accept, &dfa_rulebook);
-        dfa.accept(str)
+        match &self.dfa_rulebook {
+            Some(rulebook) => {
+                // マップされた情報からスタートと受理状態を抽出
+                let dfa_start = self.state_map.get_start();
+                let dfa_accept = self.to_dfa_accept();
+                DFADesign::new(dfa_start, &dfa_accept, rulebook).accept(str)
+            }
+            _ => false,
+        }
     }
 
     // DFAルール作成
@@ -634,10 +644,11 @@ mod test {
 
             let accept_statuses = vec![State::new(4)];
             let mut converter = NFAConverter::new(State::new(1), &accept_statuses, &rule);
+            let dfa = converter.build();
 
-            assert_eq!(true, converter.accept("bab"));
-            assert_eq!(true, converter.accept("bbbbb"));
-            assert_eq!(false, converter.accept("bbabb"));
+            assert_eq!(true, dfa.accept("bab"));
+            assert_eq!(true, dfa.accept("bbbbb"));
+            assert_eq!(false, dfa.accept("bbabb"));
         }
         {
             let rule = NFARulebook::new(vec![
@@ -652,14 +663,15 @@ mod test {
 
             let accept_statuses = vec![State::new(2), State::new(4)];
             let mut converter = NFAConverter::new(State::new(1), &accept_statuses, &rule);
+            let dfa = converter.build();
 
-            assert_eq!(false, converter.accept("a"));
-            assert_eq!(true, converter.accept("aa"));
-            assert_eq!(true, converter.accept("aaa"));
-            assert_eq!(true, converter.accept("aaaa"));
-            assert_eq!(false, converter.accept("aaaaa"));
-            assert_eq!(true, converter.accept("aaaaaa"));
-            assert_eq!(true, converter.accept("aaaaaa"));
+            assert_eq!(false, dfa.accept("a"));
+            assert_eq!(true, dfa.accept("aa"));
+            assert_eq!(true, dfa.accept("aaa"));
+            assert_eq!(true, dfa.accept("aaaa"));
+            assert_eq!(false, dfa.accept("aaaaa"));
+            assert_eq!(true, dfa.accept("aaaaaa"));
+            assert_eq!(true, dfa.accept("aaaaaa"));
         }
     }
 }
