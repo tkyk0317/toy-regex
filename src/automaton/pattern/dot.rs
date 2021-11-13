@@ -51,6 +51,7 @@ impl BasePattern for Dot {
 mod test {
     use super::*;
     use crate::automaton::pattern::{concat::Concat, literal::Literal, repeat::Repeat};
+    use std::boxed::Box;
 
     #[test]
     fn test_dot() {
@@ -73,7 +74,7 @@ mod test {
         {
             let l = Literal::new('a');
             let d = Dot::new();
-            let c = Concat::new(&l, &d);
+            let c = Concat::new(Box::new(l), Box::new(d));
 
             assert_eq!(true, c.is_match("ab"));
             assert_eq!(true, c.is_match("az"));

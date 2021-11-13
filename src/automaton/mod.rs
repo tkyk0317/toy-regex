@@ -1,4 +1,4 @@
 mod dfa;
 mod farule;
 mod nfa;
-mod pattern;
+pub mod pattern;

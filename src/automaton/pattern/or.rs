@@ -3,16 +3,17 @@
 use crate::automaton::farule::{FARule, State, TransitionType};
 use crate::automaton::nfa::{NFADesign, NFARulebook};
 use crate::automaton::pattern::base::BasePattern;
+use std::boxed::Box;
 
 #[derive(Debug)]
-pub struct Or<'a, T: BasePattern, U: BasePattern> {
+pub struct Or<T: BasePattern, U: BasePattern> {
     start_state: State,
-    left: &'a T,
-    right: &'a U,
+    left: Box<T>,
+    right: Box<U>,
 }
 
-impl<'a, T: BasePattern, U: BasePattern> Or<'a, T, U> {
-    pub fn new(left: &'a T, right: &'a U) -> Self {
+impl<T: BasePattern, U: BasePattern> Or<T, U> {
+    pub fn new(left: Box<T>, right: Box<U>) -> Self {
         Or {
             start_state: State::create_at_rnd(),
             left,
@@ -21,7 +22,7 @@ impl<'a, T: BasePattern, U: BasePattern> Or<'a, T, U> {
     }
 }
 
-impl<'a, T: BasePattern, U: BasePattern> BasePattern for Or<'a, T, U> {
+impl<T: BasePattern, U: BasePattern> BasePattern for Or<T, U> {
     fn is_match(&self, s: &str) -> bool {
         let rules = self.rules();
         NFADesign::new(
@@ -70,13 +71,14 @@ impl<'a, T: BasePattern, U: BasePattern> BasePattern for Or<'a, T, U> {
 mod test {
     use super::*;
     use crate::automaton::pattern::literal::Literal;
+    use std::boxed::Box;
 
     #[test]
     fn test_or() {
         {
             let l = Literal::new('a');
             let r = Literal::new('b');
-            let o = Or::new(&l, &r);
+            let o = Or::new(Box::new(l), Box::new(r));
 
             assert_eq!(true, o.is_match("a"));
             assert_eq!(true, o.is_match("b"));
@@ -88,8 +90,8 @@ mod test {
             let a = Literal::new('a');
             let b = Literal::new('b');
             let c = Literal::new('c');
-            let or1 = Or::new(&a, &b);
-            let or2 = Or::new(&c, &or1);
+            let or1 = Or::new(Box::new(a), Box::new(b));
+            let or2 = Or::new(Box::new(c), Box::new(or1));
 
             assert_eq!(true, or2.is_match("a"));
             assert_eq!(true, or2.is_match("b"));

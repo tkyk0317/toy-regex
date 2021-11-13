@@ -1,16 +1,17 @@
-mod base;
-mod concat;
-mod dot;
-mod empty;
-mod literal;
-mod or;
-mod repeat;
+pub mod base;
+pub mod concat;
+pub mod dot;
+pub mod empty;
+pub mod literal;
+pub mod or;
+pub mod repeat;
 
 #[cfg(test)]
 mod test {
     use crate::automaton::pattern::{
         base::BasePattern, concat::Concat, empty::Empty, literal::Literal, or::Or, repeat::Repeat,
     };
+    use std::boxed::Box;
 
     // 正規表現「a+」
     #[test]
@@ -18,7 +19,7 @@ mod test {
         let a1 = Literal::new('a');
         let a2 = Literal::new('a');
         let r = Repeat::new(&a2);
-        let con = Concat::new(&a1, &r);
+        let con = Concat::new(Box::new(a1), Box::new(r));
 
         assert_eq!(true, con.is_match("a"));
         assert_eq!(true, con.is_match("aa"));
@@ -35,7 +36,7 @@ mod test {
         {
             let a = Literal::new('a');
             let e = Empty::new();
-            let or = Or::new(&a, &e);
+            let or = Or::new(Box::new(a), Box::new(e));
 
             assert_eq!(true, or.is_match("a"));
             assert_eq!(true, or.is_match(""));
@@ -44,9 +45,10 @@ mod test {
         // a?bのテスト
         {
             let a = Literal::new('a');
-            let b = Literal::new('b');
-            let c = Concat::new(&a, &b);
-            let or = Or::new(&c, &b);
+            let b1 = Literal::new('b');
+            let b2 = Literal::new('b');
+            let c = Concat::new(Box::new(a), Box::new(b1));
+            let or = Or::new(Box::new(c), Box::new(b2));
 
             assert_eq!(true, or.is_match("ab"));
             assert_eq!(true, or.is_match("b"));
