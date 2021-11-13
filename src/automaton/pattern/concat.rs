@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 
-use crate::farule::{FARule, State, TransitionType};
-use crate::nfa::{NFADesign, NFARulebook};
-use crate::pattern::base::BasePattern;
+use crate::automaton::farule::{FARule, State, TransitionType};
+use crate::automaton::nfa::{NFADesign, NFARulebook};
+use crate::automaton::pattern::base::BasePattern;
 
 #[derive(Debug)]
 pub struct Concat<'a, T: BasePattern, U: BasePattern> {
@@ -54,8 +54,8 @@ impl<'a, T: BasePattern, U: BasePattern> BasePattern for Concat<'a, T, U> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::pattern::empty::Empty;
-    use crate::pattern::literal::Literal;
+    use crate::automaton::pattern::empty::Empty;
+    use crate::automaton::pattern::literal::Literal;
 
     #[test]
     fn test_concat() {

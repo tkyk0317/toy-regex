@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::farule::{FARule, State};
+use crate::automaton::farule::{FARule, State};
 use std::vec::Vec;
 
 pub trait BasePattern {

@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
-use crate::dfa::{DFADesign, DFARulebook};
-use crate::farule::{FARule, State, TransitionType};
+use crate::automaton::dfa::{DFADesign, DFARulebook};
+use crate::automaton::farule::{FARule, State, TransitionType};
 use std::char;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::vec::Vec;
@@ -383,7 +383,7 @@ impl<'a> NFAConverter<'a> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::farule::TransitionType;
+    use crate::automaton::farule::TransitionType;
 
     #[test]
     fn test_nfarulebook() {

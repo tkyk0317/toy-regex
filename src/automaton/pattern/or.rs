@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 
-use crate::farule::{FARule, State, TransitionType};
-use crate::nfa::{NFADesign, NFARulebook};
-use crate::pattern::base::BasePattern;
+use crate::automaton::farule::{FARule, State, TransitionType};
+use crate::automaton::nfa::{NFADesign, NFARulebook};
+use crate::automaton::pattern::base::BasePattern;
 
 #[derive(Debug)]
 pub struct Or<'a, T: BasePattern, U: BasePattern> {
@@ -69,7 +69,7 @@ impl<'a, T: BasePattern, U: BasePattern> BasePattern for Or<'a, T, U> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::pattern::literal::Literal;
+    use crate::automaton::pattern::literal::Literal;
 
     #[test]
     fn test_or() {

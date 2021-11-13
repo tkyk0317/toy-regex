@@ -8,7 +8,7 @@ mod repeat;
 
 #[cfg(test)]
 mod test {
-    use crate::pattern::{
+    use crate::automaton::pattern::{
         base::BasePattern, concat::Concat, empty::Empty, literal::Literal, or::Or, repeat::Repeat,
     };
 

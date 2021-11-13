@@ -1,7 +1,4 @@
-mod dfa;
-mod farule;
-mod nfa;
-mod pattern;
+mod automaton;
 
 fn main() {
     println!("Hello, world!");

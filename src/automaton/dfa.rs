@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::farule::{FARule, State};
+use crate::automaton::farule::{FARule, State};
 use std::char;
 use std::vec::Vec;
 
@@ -86,7 +86,7 @@ impl<'a> DFADesign<'a> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::farule::TransitionType;
+    use crate::automaton::farule::TransitionType;
 
     #[test]
     fn test_next_state() {

@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 
-use crate::farule::{FARule, State, TransitionType};
-use crate::nfa::{NFADesign, NFARulebook};
-use crate::pattern::base::BasePattern;
+use crate::automaton::farule::{FARule, State, TransitionType};
+use crate::automaton::nfa::{NFADesign, NFARulebook};
+use crate::automaton::pattern::base::BasePattern;
 
 #[derive(Debug)]
 pub struct Empty {

@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 
-use crate::farule::{FARule, State, TransitionType};
-use crate::nfa::{NFADesign, NFARulebook};
-use crate::pattern::base::BasePattern;
+use crate::automaton::farule::{FARule, State, TransitionType};
+use crate::automaton::nfa::{NFADesign, NFARulebook};
+use crate::automaton::pattern::base::BasePattern;
 
 #[derive(Debug)]
 pub struct Dot {
@@ -50,7 +50,7 @@ impl BasePattern for Dot {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::pattern::{concat::Concat, literal::Literal, repeat::Repeat};
+    use crate::automaton::pattern::{concat::Concat, literal::Literal, repeat::Repeat};
 
     #[test]
     fn test_dot() {
