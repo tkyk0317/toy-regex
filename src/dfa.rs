@@ -146,7 +146,7 @@ mod test {
         ]);
         let accept_statuses = vec![State::new(3)];
         let mut dfa = Dfa::new(State::new(1), &accept_statuses, &rule);
-        dfa.read_string("baaab");
+        let _ = dfa.read_string("baaab");
 
         assert_eq!(true, dfa.accepting());
     }

@@ -12,6 +12,9 @@ pub struct NFARulebook {
 }
 
 impl NFARulebook {
+    // 全ての文字列にマッチすることを示すchar
+    pub const EVERYTHING_CHAR: char = '∀';
+
     pub fn new(rules: Vec<FARule>) -> Self {
         NFARulebook { rules }
     }
@@ -20,9 +23,15 @@ impl NFARulebook {
     pub fn alphabet(&self) -> HashSet<char> {
         self.rules
             .iter()
-            .filter(|r| matches!(r.transition, TransitionType::Character(_c)))
+            .filter(|r| {
+                matches!(
+                    r.transition,
+                    TransitionType::Character(_) | TransitionType::Everything
+                )
+            })
             .map(|r| match r.transition {
                 TransitionType::Character(c) => c,
+                TransitionType::Everything => Self::EVERYTHING_CHAR,
                 _ => panic!("[NFARulebook::alphabet] must not reach"),
             })
             .collect()
@@ -299,11 +308,7 @@ impl<'a> NFAConverter<'a> {
                 }
 
                 // FARuleを作成
-                FARule::new(
-                    self.state_map.get_state(&st_state),
-                    TransitionType::Character(character),
-                    self.state_map.get_state(&next_state),
-                )
+                self.build_farule(character, &st_state, &next_state)
             })
             .collect()
     }
@@ -350,6 +355,28 @@ impl<'a> NFAConverter<'a> {
             .map(|s| self.state_map.get_include_state(s))
             .flatten()
             .collect()
+    }
+
+    // FARule作成
+    fn build_farule(
+        &self,
+        c: char,
+        st_state: &HashSet<State>,
+        next_state: &HashSet<State>,
+    ) -> FARule {
+        if c == NFARulebook::EVERYTHING_CHAR {
+            FARule::new(
+                self.state_map.get_state(st_state),
+                TransitionType::Everything,
+                self.state_map.get_state(next_state),
+            )
+        } else {
+            FARule::new(
+                self.state_map.get_state(st_state),
+                TransitionType::Character(c),
+                self.state_map.get_state(next_state),
+            )
+        }
     }
 }
 
