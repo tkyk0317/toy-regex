@@ -1,7 +1,9 @@
 #![allow(dead_code)]
 
 use crate::automaton::pattern::base::BasePattern;
-use crate::automaton::pattern::{concat::Concat, literal::Literal, plus::Plus, repeat::Repeat};
+use crate::automaton::pattern::{
+    concat::Concat, dot::Dot, literal::Literal, plus::Plus, repeat::Repeat,
+};
 use crate::parse::lexer::Token;
 use std::boxed::Box;
 
@@ -37,7 +39,7 @@ impl<'a> Parser<'a> {
         }
 
         match self.tokens[self.index] {
-            Token::Character(_) => {
+            Token::Character(_) | Token::Dot => {
                 let f2 = self.seq();
                 Box::new(Concat::new(f1, f2))
             }
@@ -67,9 +69,13 @@ impl<'a> Parser<'a> {
         }
     }
 
-    // Literal | sub_expr
+    // Literal | '.' | sub_expr
     fn factor(&mut self) -> Box<dyn BasePattern> {
         match self.tokens[self.index] {
+            Token::Dot => {
+                self.next();
+                Box::new(Dot::new())
+            }
             Token::Character(c) => {
                 self.next();
                 Box::new(Literal::new(c))
@@ -168,5 +174,47 @@ mod test {
         assert_eq!(true, p.is_match("aaa"));
         assert_eq!(false, p.is_match("b"));
         assert_eq!(false, p.is_match(""));
+    }
+    #[test]
+    fn test_parser_dot() {
+        {
+            let tokens = vec![Token::Dot];
+            let p = Parser::new(&tokens).parse();
+            assert_eq!(true, p.is_match("a"));
+            assert_eq!(false, p.is_match("ab"));
+            assert_eq!(false, p.is_match("aa"));
+            assert_eq!(false, p.is_match(""));
+        }
+        {
+            let tokens = vec![Token::Character('a'), Token::Dot];
+            let p = Parser::new(&tokens).parse();
+            assert_eq!(true, p.is_match("aa"));
+            assert_eq!(true, p.is_match("ab"));
+            assert_eq!(false, p.is_match("a"));
+            assert_eq!(false, p.is_match("abb"));
+            assert_eq!(false, p.is_match(""));
+        }
+        {
+            let tokens = vec![Token::Character('a'), Token::Dot, Token::Dot];
+            let p = Parser::new(&tokens).parse();
+            assert_eq!(true, p.is_match("aaa"));
+            assert_eq!(true, p.is_match("abc"));
+            assert_eq!(false, p.is_match("aaaa"));
+            assert_eq!(false, p.is_match("aa"));
+            assert_eq!(false, p.is_match("ab"));
+            assert_eq!(false, p.is_match("a"));
+            assert_eq!(false, p.is_match("b"));
+            assert_eq!(false, p.is_match(""));
+        }
+        {
+            let tokens = vec![Token::Dot, Token::Character('a')];
+            let p = Parser::new(&tokens).parse();
+            assert_eq!(true, p.is_match("aa"));
+            assert_eq!(true, p.is_match("ba"));
+            assert_eq!(false, p.is_match("ab"));
+            assert_eq!(false, p.is_match("baa"));
+            assert_eq!(false, p.is_match("bab"));
+            assert_eq!(false, p.is_match(""));
+        }
     }
 }

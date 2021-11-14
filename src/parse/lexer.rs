@@ -3,10 +3,11 @@
 // サポートしているトークン
 #[derive(Debug, PartialEq)]
 pub enum Token {
+    Asterisk,
+    Dot,
     Character(char),
     Or,
     Plus,
-    Asterisk,
 }
 
 pub struct Lexer<'a> {
@@ -25,6 +26,7 @@ impl<'a> Lexer<'a> {
             .map(|c| match c {
                 s if s.is_alphabetic() => Token::Character(c),
                 '*' => Token::Asterisk,
+                '.' => Token::Dot,
                 '+' => Token::Plus,
                 _ => panic!("[Lexer::scan] not support char: {:?}", c),
             })
@@ -64,5 +66,15 @@ mod test {
         assert_eq!(Token::Character('a'), tokens[0]);
         assert_eq!(Token::Character('b'), tokens[1]);
         assert_eq!(Token::Plus, tokens[2]);
+    }
+
+    #[test]
+    fn test_scan_dot() {
+        let tokens = Lexer::new("a.b").scan();
+
+        assert_eq!(3, tokens.len());
+        assert_eq!(Token::Character('a'), tokens[0]);
+        assert_eq!(Token::Dot, tokens[1]);
+        assert_eq!(Token::Character('b'), tokens[2]);
     }
 }
