@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use crate::automaton::pattern::base::BasePattern;
-use crate::automaton::pattern::{concat::Concat, literal::Literal, repeat::Repeat};
+use crate::automaton::pattern::{concat::Concat, literal::Literal, plus::Plus, repeat::Repeat};
 use crate::parse::lexer::Token;
 use std::boxed::Box;
 
@@ -47,17 +47,23 @@ impl<'a> Parser<'a> {
 
     // factor ('*'|'+') | factor
     fn sub_seq(&mut self) -> Box<dyn BasePattern> {
-        let f1 = self.factor();
+        let f = self.factor();
         if self.index >= self.tokens.len() {
-            return f1;
+            return f;
         }
 
         match self.tokens[self.index] {
             Token::Asterisk => {
                 self.next();
-                Box::new(Repeat::new(f1))
+                Box::new(Repeat::new(f))
             }
-            _ => f1,
+            Token::Plus => {
+                // プラス演算子の分を読み取って、インスタンスを返す
+                let f = self.plus();
+                self.next();
+                f
+            }
+            _ => f,
         }
     }
 
@@ -69,6 +75,18 @@ impl<'a> Parser<'a> {
                 Box::new(Literal::new(c))
             }
             _ => self.sub_expr(),
+        }
+    }
+
+    // プラス演算子作成
+    fn plus(&mut self) -> Box<dyn BasePattern> {
+        // 前の文字よりインスタンスを作成
+        match self.tokens[self.index - 1] {
+            Token::Character(c) => Box::new(Plus::new(c)),
+            _ => panic!(
+                "[Parser::plus] prev token is not character ({:?}",
+                self.tokens[self.index - 1]
+            ),
         }
     }
 
@@ -138,5 +156,17 @@ mod test {
             assert_eq!(false, p.is_match("ba"));
             assert_eq!(false, p.is_match("a"));
         }
+    }
+
+    #[test]
+    fn test_parser_plus() {
+        let tokens = vec![Token::Character('a'), Token::Plus];
+        let p = Parser::new(&tokens).parse();
+
+        assert_eq!(true, p.is_match("a"));
+        assert_eq!(true, p.is_match("aa"));
+        assert_eq!(true, p.is_match("aaa"));
+        assert_eq!(false, p.is_match("b"));
+        assert_eq!(false, p.is_match(""));
     }
 }

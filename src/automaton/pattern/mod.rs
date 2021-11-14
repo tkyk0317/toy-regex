@@ -4,30 +4,15 @@ pub mod dot;
 pub mod empty;
 pub mod literal;
 pub mod or;
+pub mod plus;
 pub mod repeat;
 
 #[cfg(test)]
 mod test {
     use crate::automaton::pattern::{
-        base::BasePattern, concat::Concat, empty::Empty, literal::Literal, or::Or, repeat::Repeat,
+        base::BasePattern, concat::Concat, empty::Empty, literal::Literal, or::Or,
     };
     use std::boxed::Box;
-
-    // 正規表現「a+」
-    #[test]
-    fn test_plus_regex() {
-        let a1 = Literal::new('a');
-        let a2 = Literal::new('a');
-        let r = Repeat::new(Box::new(a2));
-        let con = Concat::new(Box::new(a1), Box::new(r));
-
-        assert_eq!(true, con.is_match("a"));
-        assert_eq!(true, con.is_match("aa"));
-        assert_eq!(true, con.is_match("aaaaaaa"));
-        assert_eq!(false, con.is_match(""));
-        assert_eq!(false, con.is_match("b"));
-        assert_eq!(false, con.is_match("bb"));
-    }
 
     // 正規表現「?」
     #[test]
