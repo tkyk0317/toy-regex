@@ -6,13 +6,13 @@ use crate::automaton::pattern::base::BasePattern;
 use std::boxed::Box;
 
 #[derive(Debug)]
-pub struct Or<T: BasePattern, U: BasePattern> {
+pub struct Or<T: BasePattern + ?Sized, U: BasePattern + ?Sized> {
     start_state: State,
     left: Box<T>,
     right: Box<U>,
 }
 
-impl<T: BasePattern, U: BasePattern> Or<T, U> {
+impl<T: BasePattern + ?Sized, U: BasePattern + ?Sized> Or<T, U> {
     pub fn new(left: Box<T>, right: Box<U>) -> Self {
         Or {
             start_state: State::create_at_rnd(),
@@ -22,7 +22,7 @@ impl<T: BasePattern, U: BasePattern> Or<T, U> {
     }
 }
 
-impl<T: BasePattern, U: BasePattern> BasePattern for Or<T, U> {
+impl<T: BasePattern + ?Sized, U: BasePattern + ?Sized> BasePattern for Or<T, U> {
     fn is_match(&self, s: &str) -> bool {
         let rules = self.rules();
         NFADesign::new(

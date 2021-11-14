@@ -2,7 +2,7 @@
 
 use crate::automaton::pattern::base::BasePattern;
 use crate::automaton::pattern::{
-    concat::Concat, dot::Dot, literal::Literal, plus::Plus, repeat::Repeat,
+    concat::Concat, dot::Dot, literal::Literal, or::Or, plus::Plus, repeat::Repeat,
 };
 use crate::parse::lexer::Token;
 use std::boxed::Box;
@@ -26,9 +26,21 @@ impl<'a> Parser<'a> {
         self.sub_expr()
     }
 
-    // seq
+    // seq '|' seq
     fn sub_expr(&mut self) -> Box<dyn BasePattern> {
-        self.seq()
+        let f1 = self.seq();
+        if self.index >= self.tokens.len() {
+            return f1;
+        }
+
+        match self.tokens[self.index] {
+            Token::Or => {
+                self.next();
+                let f2 = self.seq();
+                Box::new(Or::new(f1, f2))
+            }
+            _ => f1,
+        }
     }
 
     // sub_seq seq
@@ -215,6 +227,35 @@ mod test {
             assert_eq!(false, p.is_match("baa"));
             assert_eq!(false, p.is_match("bab"));
             assert_eq!(false, p.is_match(""));
+        }
+    }
+
+    #[test]
+    fn test_parser_or() {
+        {
+            let tokens = vec![Token::Character('a'), Token::Or, Token::Character('b')];
+            let p = Parser::new(&tokens).parse();
+            assert_eq!(true, p.is_match("a"));
+            assert_eq!(true, p.is_match("b"));
+            assert_eq!(false, p.is_match("c"));
+            assert_eq!(false, p.is_match("ab"));
+        }
+        {
+            let tokens = vec![
+                Token::Character('a'),
+                Token::Character('b'),
+                Token::Or,
+                Token::Character('c'),
+                Token::Character('d'),
+            ];
+            let p = Parser::new(&tokens).parse();
+            assert_eq!(true, p.is_match("ab"));
+            assert_eq!(true, p.is_match("cd"));
+            assert_eq!(false, p.is_match("a"));
+            assert_eq!(false, p.is_match("b"));
+            assert_eq!(false, p.is_match("c"));
+            assert_eq!(false, p.is_match("d"));
+            assert_eq!(false, p.is_match("abcd"));
         }
     }
 }
