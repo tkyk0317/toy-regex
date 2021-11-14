@@ -1,5 +1,5 @@
 mod automaton;
-mod parser;
+mod parse;
 
 fn main() {
     println!("Hello, world!");

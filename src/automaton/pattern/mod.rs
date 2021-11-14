@@ -18,7 +18,7 @@ mod test {
     fn test_plus_regex() {
         let a1 = Literal::new('a');
         let a2 = Literal::new('a');
-        let r = Repeat::new(&a2);
+        let r = Repeat::new(Box::new(a2));
         let con = Concat::new(Box::new(a1), Box::new(r));
 
         assert_eq!(true, con.is_match("a"));

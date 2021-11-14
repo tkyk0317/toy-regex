@@ -6,7 +6,7 @@ pub enum Token {
     Character(char),
     Or,
     Plus,
-    Star,
+    Asterisk,
 }
 
 pub struct Lexer<'a> {
@@ -24,6 +24,7 @@ impl<'a> Lexer<'a> {
             .chars()
             .map(|c| match c {
                 s if s.is_alphabetic() => Token::Character(c),
+                '*' => Token::Asterisk,
                 _ => panic!("[Lexer::scan] not support char: {:?}", c),
             })
             .collect()
@@ -42,5 +43,15 @@ mod test {
         assert_eq!(Token::Character('a'), tokens[0]);
         assert_eq!(Token::Character('b'), tokens[1]);
         assert_eq!(Token::Character('c'), tokens[2]);
+    }
+
+    #[test]
+    fn test_scan_asterisk() {
+        let tokens = Lexer::new("ab*").scan();
+
+        assert_eq!(3, tokens.len());
+        assert_eq!(Token::Character('a'), tokens[0]);
+        assert_eq!(Token::Character('b'), tokens[1]);
+        assert_eq!(Token::Asterisk, tokens[2]);
     }
 }

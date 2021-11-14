@@ -3,15 +3,16 @@
 use crate::automaton::farule::{FARule, State, TransitionType};
 use crate::automaton::nfa::{NFADesign, NFARulebook};
 use crate::automaton::pattern::base::BasePattern;
+use std::boxed::Box;
 
 #[derive(Debug)]
-pub struct Repeat<'a, T: BasePattern> {
+pub struct Repeat<T: BasePattern + ?Sized> {
     start_state: State,
-    element: &'a T,
+    element: Box<T>,
 }
 
-impl<'a, T: BasePattern> Repeat<'a, T> {
-    pub fn new(element: &'a T) -> Self {
+impl<T: BasePattern + ?Sized> Repeat<T> {
+    pub fn new(element: Box<T>) -> Self {
         Repeat {
             start_state: State::create_at_rnd(),
             element,
@@ -19,7 +20,7 @@ impl<'a, T: BasePattern> Repeat<'a, T> {
     }
 }
 
-impl<'a, T: BasePattern> BasePattern for Repeat<'a, T> {
+impl<T: BasePattern + ?Sized> BasePattern for Repeat<T> {
     fn is_match(&self, s: &str) -> bool {
         let rules = self.rules();
         NFADesign::new(
@@ -70,7 +71,7 @@ mod test {
     #[test]
     fn test_repeat() {
         let l = Literal::new('a');
-        let r = Repeat::new(&l);
+        let r = Repeat::new(Box::new(l));
 
         assert_eq!(true, r.is_match(""));
         assert_eq!(true, r.is_match("a"));

@@ -64,7 +64,7 @@ mod test {
         }
         {
             let d = Dot::new();
-            let r = Repeat::new(&d);
+            let r = Repeat::new(Box::new(d));
 
             assert_eq!(true, r.is_match("a"));
             assert_eq!(true, r.is_match("aaaaaaaaaaaaaa"));
