@@ -2,7 +2,8 @@
 
 use crate::automaton::pattern::base::BasePattern;
 use crate::automaton::pattern::{
-    concat::Concat, dot::Dot, literal::Literal, or::Or, plus::Plus, repeat::Repeat,
+    concat::Concat, dot::Dot, literal::Literal, or::Or, plus::Plus, question::Question,
+    repeat::Repeat,
 };
 use crate::parse::lexer::Token;
 use std::boxed::Box;
@@ -59,7 +60,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    // factor ('*'|'+') | factor
+    // factor ('*'|'+'|'.'|'?') | factor
     fn sub_seq(&mut self) -> Box<dyn BasePattern> {
         let f = self.factor();
         if self.index >= self.tokens.len() {
@@ -70,6 +71,11 @@ impl<'a> Parser<'a> {
             Token::Asterisk => {
                 self.next();
                 Box::new(Repeat::new(f))
+            }
+            Token::Question => {
+                let q = self.question();
+                self.next();
+                q
             }
             Token::Plus => {
                 // プラス演算子の分を読み取って、インスタンスを返す
@@ -107,7 +113,17 @@ impl<'a> Parser<'a> {
             ),
         }
     }
-
+    // ?演算子作成
+    fn question(&mut self) -> Box<dyn BasePattern> {
+        // 前の文字よりインスタンスを作成
+        match self.tokens[self.index - 1] {
+            Token::Character(c) => Box::new(Question::new(c)),
+            _ => panic!(
+                "[Parser::question] prev token is not character ({:?}",
+                self.tokens[self.index - 1]
+            ),
+        }
+    }
     // 次の要素へ移動
     fn next(&mut self) {
         self.index += 1;
@@ -219,6 +235,18 @@ mod test {
             assert_eq!(false, p.is_match(""));
         }
         {
+            let tokens = vec![Token::Character('a'), Token::Dot, Token::Character('c')];
+            let p = Parser::new(&tokens).parse();
+            assert_eq!(true, p.is_match("aac"));
+            assert_eq!(true, p.is_match("abc"));
+            assert_eq!(false, p.is_match("aaaa"));
+            assert_eq!(false, p.is_match("aa"));
+            assert_eq!(false, p.is_match("ab"));
+            assert_eq!(false, p.is_match("a"));
+            assert_eq!(false, p.is_match("b"));
+            assert_eq!(false, p.is_match(""));
+        }
+        {
             let tokens = vec![Token::Dot, Token::Character('a')];
             let p = Parser::new(&tokens).parse();
             assert_eq!(true, p.is_match("aa"));
@@ -256,6 +284,59 @@ mod test {
             assert_eq!(false, p.is_match("c"));
             assert_eq!(false, p.is_match("d"));
             assert_eq!(false, p.is_match("abcd"));
+        }
+    }
+
+    #[test]
+    fn test_parser_question() {
+        {
+            let tokens = vec![Token::Character('a'), Token::Question];
+            let p = Parser::new(&tokens).parse();
+            assert_eq!(true, p.is_match("a"));
+            assert_eq!(true, p.is_match(""));
+            assert_eq!(false, p.is_match("aa"));
+        }
+        {
+            let tokens = vec![
+                Token::Character('a'),
+                Token::Question,
+                Token::Character('b'),
+            ];
+            let p = Parser::new(&tokens).parse();
+            assert_eq!(true, p.is_match("ab"));
+            assert_eq!(true, p.is_match("b"));
+            assert_eq!(false, p.is_match("a"));
+            assert_eq!(false, p.is_match(""));
+            assert_eq!(false, p.is_match("aa"));
+        }
+        {
+            let tokens = vec![
+                Token::Character('a'),
+                Token::Character('b'),
+                Token::Question,
+                Token::Character('c'),
+            ];
+            let p = Parser::new(&tokens).parse();
+            assert_eq!(true, p.is_match("abc"));
+            assert_eq!(true, p.is_match("ac"));
+            assert_eq!(false, p.is_match("a"));
+            assert_eq!(false, p.is_match("b"));
+            assert_eq!(false, p.is_match(""));
+            assert_eq!(false, p.is_match("ab"));
+        }
+        {
+            let tokens = vec![
+                Token::Character('a'),
+                Token::Question,
+                Token::Character('c'),
+                Token::Question,
+            ];
+            let p = Parser::new(&tokens).parse();
+            assert_eq!(true, p.is_match(""));
+            assert_eq!(true, p.is_match("a"));
+            assert_eq!(true, p.is_match("c"));
+            assert_eq!(true, p.is_match("ac"));
+            assert_eq!(false, p.is_match("b"));
         }
     }
 }
