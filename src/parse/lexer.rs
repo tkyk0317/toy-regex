@@ -24,6 +24,7 @@ impl<'a> Lexer<'a> {
     pub fn scan(&self) -> Vec<Token> {
         self.str
             .chars()
+            .filter(|c| *c != '\n')
             .map(|c| match c {
                 s if s.is_alphanumeric() => Token::Character(c),
                 '*' => Token::Asterisk,
@@ -49,6 +50,17 @@ mod test {
         assert_eq!(Token::Character('a'), tokens[0]);
         assert_eq!(Token::Character('b'), tokens[1]);
         assert_eq!(Token::Character('c'), tokens[2]);
+    }
+
+    #[test]
+    fn test_scan_character_include_newline() {
+        let tokens = Lexer::new("abc\nd").scan();
+
+        assert_eq!(4, tokens.len());
+        assert_eq!(Token::Character('a'), tokens[0]);
+        assert_eq!(Token::Character('b'), tokens[1]);
+        assert_eq!(Token::Character('c'), tokens[2]);
+        assert_eq!(Token::Character('d'), tokens[3]);
     }
 
     #[test]
