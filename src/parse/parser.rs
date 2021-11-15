@@ -8,7 +8,7 @@ use crate::automaton::pattern::{
 use crate::parse::lexer::Token;
 use std::boxed::Box;
 
-struct Parser<'a> {
+pub struct Parser<'a> {
     tokens: &'a [Token],
     index: usize,
 }

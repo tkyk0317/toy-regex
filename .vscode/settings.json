@@ -4,6 +4,7 @@
         "Deque",
         "dtran",
         "farule",
-        "Rulebook"
+        "Rulebook",
+        "structopt"
     ]
 }
