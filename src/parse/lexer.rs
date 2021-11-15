@@ -25,7 +25,7 @@ impl<'a> Lexer<'a> {
         self.str
             .chars()
             .map(|c| match c {
-                s if s.is_alphabetic() => Token::Character(c),
+                s if s.is_alphanumeric() => Token::Character(c),
                 '*' => Token::Asterisk,
                 '.' => Token::Dot,
                 '+' => Token::Plus,
@@ -49,6 +49,17 @@ mod test {
         assert_eq!(Token::Character('a'), tokens[0]);
         assert_eq!(Token::Character('b'), tokens[1]);
         assert_eq!(Token::Character('c'), tokens[2]);
+    }
+
+    #[test]
+    fn test_scan_number() {
+        let tokens = Lexer::new("a1c0").scan();
+
+        assert_eq!(4, tokens.len());
+        assert_eq!(Token::Character('a'), tokens[0]);
+        assert_eq!(Token::Character('1'), tokens[1]);
+        assert_eq!(Token::Character('c'), tokens[2]);
+        assert_eq!(Token::Character('0'), tokens[3]);
     }
 
     #[test]
