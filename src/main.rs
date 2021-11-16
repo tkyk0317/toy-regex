@@ -1,6 +1,7 @@
 mod automaton;
 mod parse;
 mod regex;
+mod vm;
 
 use regex::Regex;
 use std::path::PathBuf;
