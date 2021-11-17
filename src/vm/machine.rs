@@ -180,4 +180,16 @@ mod test {
             assert_eq!(false, m.start(""));
         }
     }
+
+    #[test]
+    fn test_machine_or() {
+        let mut m = Machine::new("a|b");
+
+        assert_eq!(true, m.start("a"));
+        assert_eq!(true, m.start("b"));
+        assert_eq!(true, m.start("aa"));
+        assert_eq!(true, m.start("bb"));
+        assert_eq!(false, m.start("c"));
+        assert_eq!(false, m.start(""));
+    }
 }

@@ -76,6 +76,24 @@ impl Builder {
                 self.pc += 2;
                 inst
             }
+            AstTree::Or(left, right) => {
+                // xは、leftの命令へ設定
+                let x = self.pc + 1;
+                let l_inst = self.ast_to_inst(left);
+                self.pc += 1; // Jmp命令を差し込むので加算
+
+                // yはright命令に設定
+                let y = self.pc + 1;
+                let r_inst = self.ast_to_inst(right);
+
+                // IRを構築
+                let mut inst = vec![RegexIR::Split(x, y)];
+                self.pc += 1;
+                inst.extend(l_inst);
+                inst.push(RegexIR::Jmp(self.pc));
+                inst.extend(r_inst);
+                inst
+            }
             _ => panic!("[Builder::ast_to_inst] not support ast {:?}", ast),
         }
     }
@@ -164,6 +182,20 @@ mod test {
             assert_eq!(RegexIR::Char('b'), ir[6]);
             assert_eq!(RegexIR::Jmp(5), ir[7]);
             assert_eq!(RegexIR::Match, ir[8]);
+        }
+    }
+
+    #[test]
+    fn test_builder_compile_or() {
+        {
+            let ir = Builder::new("a|b").compile();
+
+            assert_eq!(5, ir.len());
+            assert_eq!(RegexIR::Split(1, 3), ir[0]);
+            assert_eq!(RegexIR::Char('a'), ir[1]);
+            assert_eq!(RegexIR::Jmp(4), ir[2]);
+            assert_eq!(RegexIR::Char('b'), ir[3]);
+            assert_eq!(RegexIR::Match, ir[4]);
         }
     }
 
