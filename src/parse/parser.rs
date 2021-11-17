@@ -1,51 +1,60 @@
 #![allow(dead_code)]
 
-use crate::automaton::pattern::base::BasePattern;
-use crate::automaton::pattern::{
-    concat::Concat, dot::Dot, literal::Literal, or::Or, plus::Plus, question::Question,
-    repeat::Repeat,
-};
 use crate::parse::lexer::Token;
 use std::boxed::Box;
 
-pub struct Parser<'a> {
+// AST
+#[derive(Debug, PartialEq)]
+pub enum AstTree {
+    Concat(Box<AstTree>, Box<AstTree>),
+    Or(Box<AstTree>, Box<AstTree>),
+    Repeat(Box<AstTree>),
+    Literal(char),
+    Dot,
+    Plus(Box<AstTree>),
+    Question(Box<AstTree>),
+}
+
+// VMエンジンで使用
+#[derive(Debug)]
+pub struct Ast<'a> {
     tokens: &'a [Token],
     index: usize,
 }
 
-impl<'a> Parser<'a> {
+impl<'a> Ast<'a> {
     pub fn new(tokens: &'a [Token]) -> Self {
-        Parser { tokens, index: 0 }
+        Ast { tokens, index: 0 }
     }
 
-    // トークン列をパース
-    pub fn parse(&mut self) -> Box<dyn BasePattern> {
+    // トークンをパースし、ASTツリー生成
+    pub fn parse(&mut self) -> AstTree {
         self.expr()
     }
 
-    fn expr(&mut self) -> Box<dyn BasePattern> {
+    fn expr(&mut self) -> AstTree {
         self.sub_expr()
     }
 
     // seq '|' seq
-    fn sub_expr(&mut self) -> Box<dyn BasePattern> {
-        let f1 = self.seq();
+    fn sub_expr(&mut self) -> AstTree {
+        let a1 = self.seq();
         if self.index >= self.tokens.len() {
-            return f1;
+            return a1;
         }
 
         match self.tokens[self.index] {
             Token::Or => {
                 self.next();
-                let f2 = self.seq();
-                Box::new(Or::new(f1, f2))
+                let a2 = self.seq();
+                AstTree::Or(Box::new(a1), Box::new(a2))
             }
-            _ => f1,
+            _ => a1,
         }
     }
 
     // sub_seq seq
-    fn seq(&mut self) -> Box<dyn BasePattern> {
+    fn seq(&mut self) -> AstTree {
         let f1 = self.sub_seq();
         if self.index >= self.tokens.len() {
             return f1;
@@ -54,14 +63,14 @@ impl<'a> Parser<'a> {
         match self.tokens[self.index] {
             Token::Character(_) | Token::Dot => {
                 let f2 = self.seq();
-                Box::new(Concat::new(f1, f2))
+                AstTree::Concat(Box::new(f1), Box::new(f2))
             }
             _ => f1,
         }
     }
 
     // factor ('*'|'+'|'.'|'?') | factor
-    fn sub_seq(&mut self) -> Box<dyn BasePattern> {
+    fn sub_seq(&mut self) -> AstTree {
         let f = self.factor();
         if self.index >= self.tokens.len() {
             return f;
@@ -70,7 +79,7 @@ impl<'a> Parser<'a> {
         match self.tokens[self.index] {
             Token::Asterisk => {
                 self.next();
-                Box::new(Repeat::new(f))
+                AstTree::Repeat(Box::new(f))
             }
             Token::Question => {
                 let q = self.question();
@@ -88,42 +97,44 @@ impl<'a> Parser<'a> {
     }
 
     // Literal | '.' | sub_expr
-    fn factor(&mut self) -> Box<dyn BasePattern> {
+    fn factor(&mut self) -> AstTree {
         match self.tokens[self.index] {
             Token::Dot => {
                 self.next();
-                Box::new(Dot::new())
+                AstTree::Dot
             }
             Token::Character(c) => {
                 self.next();
-                Box::new(Literal::new(c))
+                AstTree::Literal(c)
             }
             _ => self.sub_expr(),
         }
     }
 
     // プラス演算子作成
-    fn plus(&mut self) -> Box<dyn BasePattern> {
+    fn plus(&mut self) -> AstTree {
         // 前の文字よりインスタンスを作成
         match self.tokens[self.index - 1] {
-            Token::Character(c) => Box::new(Plus::new(c)),
+            Token::Character(c) => AstTree::Plus(Box::new(AstTree::Literal(c))),
             _ => panic!(
                 "[Parser::plus] prev token is not character ({:?}",
                 self.tokens[self.index - 1]
             ),
         }
     }
+
     // ?演算子作成
-    fn question(&mut self) -> Box<dyn BasePattern> {
+    fn question(&mut self) -> AstTree {
         // 前の文字よりインスタンスを作成
         match self.tokens[self.index - 1] {
-            Token::Character(c) => Box::new(Question::new(c)),
+            Token::Character(c) => AstTree::Question(Box::new(AstTree::Literal(c))),
             _ => panic!(
                 "[Parser::question] prev token is not character ({:?}",
                 self.tokens[self.index - 1]
             ),
         }
     }
+
     // 次の要素へ移動
     fn next(&mut self) {
         self.index += 1;
@@ -135,22 +146,43 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_parser_literal() {
+    fn test_ast_literal() {
         {
             let tokens = vec![Token::Character('a')];
-            let p = Parser::new(&tokens).parse();
+            let ast = Ast::new(&tokens).parse();
 
-            assert_eq!(true, p.is_match("a"));
-            assert_eq!(false, p.is_match("b"));
+            assert_eq!(AstTree::Literal('a'), ast)
         }
         {
             let tokens = vec![Token::Character('a'), Token::Character('b')];
-            let p = Parser::new(&tokens).parse();
+            let ast = Ast::new(&tokens).parse();
 
-            assert_eq!(true, p.is_match("ab"));
-            assert_eq!(false, p.is_match("a"));
-            assert_eq!(false, p.is_match("b"));
-            assert_eq!(false, p.is_match("aa"));
+            assert_eq!(
+                AstTree::Concat(
+                    Box::new(AstTree::Literal('a')),
+                    Box::new(AstTree::Literal('b'))
+                ),
+                ast
+            );
+        }
+        {
+            let tokens = vec![
+                Token::Character('a'),
+                Token::Character('b'),
+                Token::Character('c'),
+            ];
+            let ast = Ast::new(&tokens).parse();
+
+            assert_eq!(
+                AstTree::Concat(
+                    Box::new(AstTree::Literal('a')),
+                    Box::new(AstTree::Concat(
+                        Box::new(AstTree::Literal('b')),
+                        Box::new(AstTree::Literal('c'))
+                    ))
+                ),
+                ast
+            );
         }
         {
             let tokens = vec![
@@ -160,183 +192,91 @@ mod test {
                 Token::Character('d'),
                 Token::Character('e'),
             ];
-            let p = Parser::new(&tokens).parse();
+            let ast = Ast::new(&tokens).parse();
 
-            assert_eq!(true, p.is_match("abcde"));
-            assert_eq!(false, p.is_match("abcdef"));
-            assert_eq!(false, p.is_match("abcd"));
+            assert_eq!(
+                AstTree::Concat(
+                    Box::new(AstTree::Literal('a')),
+                    Box::new(AstTree::Concat(
+                        Box::new(AstTree::Literal('b')),
+                        Box::new(AstTree::Concat(
+                            Box::new(AstTree::Literal('c')),
+                            Box::new(AstTree::Concat(
+                                Box::new(AstTree::Literal('d')),
+                                Box::new(AstTree::Literal('e')),
+                            ))
+                        ))
+                    ))
+                ),
+                ast
+            );
         }
     }
 
     #[test]
-    fn test_parser_asterisk() {
-        {
-            let tokens = vec![Token::Character('a'), Token::Asterisk];
-            let p = Parser::new(&tokens).parse();
+    fn test_ast_asterisk() {
+        let tokens = vec![Token::Character('a'), Token::Asterisk];
+        let ast = Ast::new(&tokens).parse();
 
-            assert_eq!(true, p.is_match(""));
-            assert_eq!(true, p.is_match("a"));
-            assert_eq!(true, p.is_match("aa"));
-            assert_eq!(false, p.is_match("ab"));
-            assert_eq!(false, p.is_match("b"));
-        }
-        {
-            let tokens = vec![Token::Character('b'), Token::Asterisk];
-            let p = Parser::new(&tokens).parse();
-
-            assert_eq!(true, p.is_match(""));
-            assert_eq!(true, p.is_match("b"));
-            assert_eq!(true, p.is_match("bbbbbbb"));
-            assert_eq!(false, p.is_match("ba"));
-            assert_eq!(false, p.is_match("a"));
-        }
+        assert_eq!(AstTree::Repeat(Box::new(AstTree::Literal('a'))), ast)
     }
 
     #[test]
-    fn test_parser_plus() {
-        let tokens = vec![Token::Character('a'), Token::Plus];
-        let p = Parser::new(&tokens).parse();
+    fn test_ast_dot() {
+        let tokens = vec![Token::Character('a'), Token::Dot, Token::Character('c')];
+        let ast = Ast::new(&tokens).parse();
 
-        assert_eq!(true, p.is_match("a"));
-        assert_eq!(true, p.is_match("aa"));
-        assert_eq!(true, p.is_match("aaa"));
-        assert_eq!(false, p.is_match("b"));
-        assert_eq!(false, p.is_match(""));
-    }
-    #[test]
-    fn test_parser_dot() {
-        {
-            let tokens = vec![Token::Dot];
-            let p = Parser::new(&tokens).parse();
-            assert_eq!(true, p.is_match("a"));
-            assert_eq!(false, p.is_match("ab"));
-            assert_eq!(false, p.is_match("aa"));
-            assert_eq!(false, p.is_match(""));
-        }
-        {
-            let tokens = vec![Token::Character('a'), Token::Dot];
-            let p = Parser::new(&tokens).parse();
-            assert_eq!(true, p.is_match("aa"));
-            assert_eq!(true, p.is_match("ab"));
-            assert_eq!(false, p.is_match("a"));
-            assert_eq!(false, p.is_match("abb"));
-            assert_eq!(false, p.is_match(""));
-        }
-        {
-            let tokens = vec![Token::Character('a'), Token::Dot, Token::Dot];
-            let p = Parser::new(&tokens).parse();
-            assert_eq!(true, p.is_match("aaa"));
-            assert_eq!(true, p.is_match("abc"));
-            assert_eq!(false, p.is_match("aaaa"));
-            assert_eq!(false, p.is_match("aa"));
-            assert_eq!(false, p.is_match("ab"));
-            assert_eq!(false, p.is_match("a"));
-            assert_eq!(false, p.is_match("b"));
-            assert_eq!(false, p.is_match(""));
-        }
-        {
-            let tokens = vec![Token::Character('a'), Token::Dot, Token::Character('c')];
-            let p = Parser::new(&tokens).parse();
-            assert_eq!(true, p.is_match("aac"));
-            assert_eq!(true, p.is_match("abc"));
-            assert_eq!(false, p.is_match("aaaa"));
-            assert_eq!(false, p.is_match("aa"));
-            assert_eq!(false, p.is_match("ab"));
-            assert_eq!(false, p.is_match("a"));
-            assert_eq!(false, p.is_match("b"));
-            assert_eq!(false, p.is_match(""));
-        }
-        {
-            let tokens = vec![Token::Dot, Token::Character('a')];
-            let p = Parser::new(&tokens).parse();
-            assert_eq!(true, p.is_match("aa"));
-            assert_eq!(true, p.is_match("ba"));
-            assert_eq!(false, p.is_match("ab"));
-            assert_eq!(false, p.is_match("baa"));
-            assert_eq!(false, p.is_match("bab"));
-            assert_eq!(false, p.is_match(""));
-        }
+        assert_eq!(
+            AstTree::Concat(
+                Box::new(AstTree::Literal('a')),
+                Box::new(AstTree::Concat(
+                    Box::new(AstTree::Dot),
+                    Box::new(AstTree::Literal('c')),
+                ))
+            ),
+            ast
+        )
     }
 
     #[test]
-    fn test_parser_or() {
+    fn test_ast_or() {
         {
             let tokens = vec![Token::Character('a'), Token::Or, Token::Character('b')];
-            let p = Parser::new(&tokens).parse();
-            assert_eq!(true, p.is_match("a"));
-            assert_eq!(true, p.is_match("b"));
-            assert_eq!(false, p.is_match("c"));
-            assert_eq!(false, p.is_match("ab"));
+            let ast = Ast::new(&tokens).parse();
+            assert_eq!(
+                AstTree::Or(
+                    Box::new(AstTree::Literal('a')),
+                    Box::new(AstTree::Literal('b')),
+                ),
+                ast
+            )
         }
         {
             let tokens = vec![
                 Token::Character('a'),
-                Token::Character('b'),
                 Token::Or,
-                Token::Character('c'),
-                Token::Character('d'),
+                Token::Character('b'),
+                Token::Dot,
             ];
-            let p = Parser::new(&tokens).parse();
-            assert_eq!(true, p.is_match("ab"));
-            assert_eq!(true, p.is_match("cd"));
-            assert_eq!(false, p.is_match("a"));
-            assert_eq!(false, p.is_match("b"));
-            assert_eq!(false, p.is_match("c"));
-            assert_eq!(false, p.is_match("d"));
-            assert_eq!(false, p.is_match("abcd"));
+            let ast = Ast::new(&tokens).parse();
+            assert_eq!(
+                AstTree::Or(
+                    Box::new(AstTree::Literal('a')),
+                    Box::new(AstTree::Concat(
+                        Box::new(AstTree::Literal('b')),
+                        Box::new(AstTree::Dot),
+                    ))
+                ),
+                ast
+            )
         }
     }
 
     #[test]
-    fn test_parser_question() {
-        {
-            let tokens = vec![Token::Character('a'), Token::Question];
-            let p = Parser::new(&tokens).parse();
-            assert_eq!(true, p.is_match("a"));
-            assert_eq!(true, p.is_match(""));
-            assert_eq!(false, p.is_match("aa"));
-        }
-        {
-            let tokens = vec![
-                Token::Character('a'),
-                Token::Question,
-                Token::Character('b'),
-            ];
-            let p = Parser::new(&tokens).parse();
-            assert_eq!(true, p.is_match("ab"));
-            assert_eq!(true, p.is_match("b"));
-            assert_eq!(false, p.is_match("a"));
-            assert_eq!(false, p.is_match(""));
-            assert_eq!(false, p.is_match("aa"));
-        }
-        {
-            let tokens = vec![
-                Token::Character('a'),
-                Token::Character('b'),
-                Token::Question,
-                Token::Character('c'),
-            ];
-            let p = Parser::new(&tokens).parse();
-            assert_eq!(true, p.is_match("abc"));
-            assert_eq!(true, p.is_match("ac"));
-            assert_eq!(false, p.is_match("a"));
-            assert_eq!(false, p.is_match("b"));
-            assert_eq!(false, p.is_match(""));
-            assert_eq!(false, p.is_match("ab"));
-        }
-        {
-            let tokens = vec![
-                Token::Character('a'),
-                Token::Question,
-                Token::Character('c'),
-                Token::Question,
-            ];
-            let p = Parser::new(&tokens).parse();
-            assert_eq!(true, p.is_match(""));
-            assert_eq!(true, p.is_match("a"));
-            assert_eq!(true, p.is_match("c"));
-            assert_eq!(true, p.is_match("ac"));
-            assert_eq!(false, p.is_match("b"));
-        }
+    fn test_ast_question() {
+        let tokens = vec![Token::Character('a'), Token::Question];
+        let ast = Ast::new(&tokens).parse();
+
+        assert_eq!(AstTree::Question(Box::new(AstTree::Literal('a'))), ast)
     }
 }

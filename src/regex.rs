@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::parse::{lexer::Lexer, parser::Parser};
+use crate::automaton::pattern::build::Builder;
 
 #[derive(Debug)]
 pub struct Regex {
@@ -14,9 +14,7 @@ impl Regex {
 
     // 正規表現実行
     pub fn exec(&self, str: String) -> bool {
-        // パターンをパースし、正規表現実行
-        let tokens = Lexer::new(&self.pattern).scan();
-        Parser::new(&tokens).parse().is_match(&str)
+        Builder::new(&self.pattern).to_dfa().is_match(&str)
     }
 }
 

@@ -1,4 +1,5 @@
 pub mod base;
+pub mod build;
 pub mod concat;
 pub mod dot;
 pub mod empty;
