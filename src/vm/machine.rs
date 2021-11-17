@@ -71,6 +71,10 @@ impl Machine {
 
                 t1.join().unwrap() | t2.join().unwrap()
             }
+            RegexIR::Jmp(x) => {
+                context.pc = x;
+                Self::exec(context)
+            }
             RegexIR::Match => true,
         }
     }
@@ -139,6 +143,40 @@ mod test {
                 m.start("aaaaaaaaaaaabbbbbbbbbbbbcccccccccccccddddddddddddeeeeeeeeeeeeee")
             );
             assert_eq!(false, m.start("abcd"));
+            assert_eq!(false, m.start(""));
+        }
+    }
+
+    #[test]
+    fn test_machine_repeat() {
+        {
+            let mut m = Machine::new("a*");
+
+            assert_eq!(true, m.start(""));
+            assert_eq!(true, m.start("a"));
+            assert_eq!(true, m.start("aa"));
+            assert_eq!(true, m.start("aaaaaaaaaaaa"));
+            assert_eq!(true, m.start("b"));
+        }
+        {
+            let mut m = Machine::new("aa*");
+
+            assert_eq!(true, m.start("a"));
+            assert_eq!(true, m.start("aa"));
+            assert_eq!(true, m.start("aaaaaaaaaaaa"));
+            assert_eq!(false, m.start("b"));
+            assert_eq!(false, m.start(""));
+        }
+        {
+            let mut m = Machine::new("aa*bb*");
+
+            assert_eq!(true, m.start("ab"));
+            assert_eq!(true, m.start("aab"));
+            assert_eq!(true, m.start("aabb"));
+            assert_eq!(true, m.start("aaaaaaaaaaaabbbbbbbbbb"));
+            assert_eq!(false, m.start("a"));
+            assert_eq!(false, m.start("b"));
+            assert_eq!(false, m.start("c"));
             assert_eq!(false, m.start(""));
         }
     }

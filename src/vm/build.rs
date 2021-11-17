@@ -8,6 +8,7 @@ use crate::parse::parser::{Ast, AstTree};
 pub enum RegexIR {
     Char(char),
     Split(usize, usize),
+    Jmp(usize),
     Match,
 }
 
@@ -48,11 +49,31 @@ impl Builder {
                 vec![RegexIR::Char(*c)]
             }
             AstTree::Plus(ast) => {
+                // xは今の命令を設定
+                let x = self.pc;
                 let mut inst = self.ast_to_inst(ast);
-                let ir = RegexIR::Split(self.pc - 1, self.pc + 1);
+                // yは次の命令を設定
+                let y = self.pc + 1;
+                let ir = RegexIR::Split(x, y);
                 self.pc += 1;
 
                 inst.push(ir);
+                inst
+            }
+            AstTree::Repeat(ast) => {
+                // xはast命令に設定
+                let cur = self.pc;
+                let x = self.pc + 1;
+                let ast_inst = self.ast_to_inst(ast);
+
+                // yはJmp命令の後に設定
+                let y = self.pc + 2;
+
+                // 各命令をマージ
+                let mut inst = vec![RegexIR::Split(x, y)];
+                inst.extend(ast_inst);
+                inst.push(RegexIR::Jmp(cur));
+                self.pc += 2;
                 inst
             }
             _ => panic!("[Builder::ast_to_inst] not support ast {:?}", ast),
@@ -109,9 +130,46 @@ mod test {
         }
     }
 
+    #[test]
+    fn test_builder_compile_repeat() {
+        {
+            let ir = Builder::new("a*").compile();
+
+            assert_eq!(4, ir.len());
+            assert_eq!(RegexIR::Split(1, 3), ir[0]);
+            assert_eq!(RegexIR::Char('a'), ir[1]);
+            assert_eq!(RegexIR::Jmp(0), ir[2]);
+            assert_eq!(RegexIR::Match, ir[3]);
+        }
+        {
+            let ir = Builder::new("aa*").compile();
+
+            assert_eq!(5, ir.len());
+            assert_eq!(RegexIR::Char('a'), ir[0]);
+            assert_eq!(RegexIR::Split(2, 4), ir[1]);
+            assert_eq!(RegexIR::Char('a'), ir[2]);
+            assert_eq!(RegexIR::Jmp(1), ir[3]);
+            assert_eq!(RegexIR::Match, ir[4]);
+        }
+        {
+            let ir = Builder::new("aa*bb*").compile();
+
+            assert_eq!(9, ir.len());
+            assert_eq!(RegexIR::Char('a'), ir[0]);
+            assert_eq!(RegexIR::Split(2, 4), ir[1]);
+            assert_eq!(RegexIR::Char('a'), ir[2]);
+            assert_eq!(RegexIR::Jmp(1), ir[3]);
+            assert_eq!(RegexIR::Char('b'), ir[4]);
+            assert_eq!(RegexIR::Split(6, 8), ir[5]);
+            assert_eq!(RegexIR::Char('b'), ir[6]);
+            assert_eq!(RegexIR::Jmp(5), ir[7]);
+            assert_eq!(RegexIR::Match, ir[8]);
+        }
+    }
+
     #[should_panic]
     #[test]
     fn test_builder_compile_not_support() {
-        Builder::new("a*").compile();
+        Builder::new("a?").compile();
     }
 }
