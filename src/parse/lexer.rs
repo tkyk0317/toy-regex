@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 // サポートしているトークン
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Token {
     Asterisk,
     Dot,

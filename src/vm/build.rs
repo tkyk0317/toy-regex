@@ -3,7 +3,7 @@
 use crate::parse::lexer::{Lexer, Token};
 
 // 中間言語
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum RegexIR {
     Char(char),
     Split(usize, usize),
@@ -13,6 +13,7 @@ pub enum RegexIR {
 pub struct Builder {
     pattern: String,
     tokens: Vec<Token>,
+    pc: usize,
 }
 
 impl Builder {
@@ -20,16 +21,26 @@ impl Builder {
         Builder {
             tokens: Lexer::new(pattern).scan(),
             pattern: pattern.to_string(),
+            pc: 0,
         }
     }
 
     // 中間言語へコンパイル
-    pub fn compile(&self) -> Vec<RegexIR> {
+    pub fn compile(&mut self) -> Vec<RegexIR> {
         let mut ir: Vec<RegexIR> = self
             .tokens
+            .clone()
             .iter()
             .map(|t| match t {
-                Token::Character(c) => RegexIR::Char(*c),
+                Token::Character(c) => {
+                    self.pc += 1;
+                    RegexIR::Char(*c)
+                }
+                Token::Plus => {
+                    let ir = RegexIR::Split(self.pc - 1, self.pc + 1);
+                    self.pc += 1;
+                    ir
+                }
                 _ => panic!("[Builder::compile] not support token _{:?}", t),
             })
             .collect();
@@ -63,6 +74,28 @@ mod test {
             assert_eq!(RegexIR::Char('e'), ir[4]);
             assert_eq!(RegexIR::Char('f'), ir[5]);
             assert_eq!(RegexIR::Match, ir[6]);
+        }
+    }
+
+    #[test]
+    fn test_builder_compile_plus() {
+        {
+            let ir = Builder::new("a+").compile();
+
+            assert_eq!(3, ir.len());
+            assert_eq!(RegexIR::Char('a'), ir[0]);
+            assert_eq!(RegexIR::Split(0, 2), ir[1]);
+            assert_eq!(RegexIR::Match, ir[2]);
+        }
+        {
+            let ir = Builder::new("a+b+").compile();
+
+            assert_eq!(5, ir.len());
+            assert_eq!(RegexIR::Char('a'), ir[0]);
+            assert_eq!(RegexIR::Split(0, 2), ir[1]);
+            assert_eq!(RegexIR::Char('b'), ir[2]);
+            assert_eq!(RegexIR::Split(2, 4), ir[3]);
+            assert_eq!(RegexIR::Match, ir[4]);
         }
     }
 
