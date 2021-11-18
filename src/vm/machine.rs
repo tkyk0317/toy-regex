@@ -43,56 +43,49 @@ impl Machine {
     // 仮想マシン実行
     pub fn is_match(&mut self, str: &str) -> bool {
         // 各命令を実行
-        let context = Context::new(self.inst.clone(), str.chars().collect());
-        Self::exec(context)
+        let ctx = Context::new(self.inst.clone(), str.chars().collect());
+        Self::exec(ctx)
     }
 
     // 命令実行
-    fn exec(mut context: Context) -> bool {
-        if context.pc >= context.inst.len() {
+    fn exec(mut ctx: Context) -> bool {
+        if ctx.pc >= ctx.inst.len() {
             return false;
         }
 
         // 各命令を実行
-        match context.inst[context.pc] {
-            RegexIR::AllChar => {
-                if context.sp >= context.target.len() {
-                    return false;
-                }
-                context.pc += 1;
-                context.sp += 1;
-
-                Self::exec(context)
+        match ctx.inst[ctx.pc] {
+            RegexIR::AllChar if ctx.sp < ctx.target.len() => {
+                ctx.pc += 1;
+                ctx.sp += 1;
+                Self::exec(ctx)
             }
-            RegexIR::Char(regex_c) => {
-                if context.sp >= context.target.len() || regex_c != context.target[context.sp] {
-                    return false;
-                }
-                context.pc += 1;
-                context.sp += 1;
-
-                Self::exec(context)
+            RegexIR::Char(c) if ctx.sp < ctx.target.len() && c == ctx.target[ctx.sp] => {
+                ctx.pc += 1;
+                ctx.sp += 1;
+                Self::exec(ctx)
             }
             RegexIR::Split(x, y) => {
                 // PC位置を変更し、スレッド起動
-                let t1 = Self::thread(&context, x);
-                let t2 = Self::thread(&context, y);
+                let t1 = Self::thread(&ctx, x);
+                let t2 = Self::thread(&ctx, y);
 
                 t1.join().unwrap() | t2.join().unwrap()
             }
             RegexIR::Jmp(x) => {
-                context.pc = x;
-                Self::exec(context)
+                ctx.pc = x;
+                Self::exec(ctx)
             }
             RegexIR::Match => true,
+            _ => false,
         }
     }
 
     // スレッド起動
-    fn thread(context: &Context, pc: usize) -> JoinHandle<bool> {
-        let mut t_context = context.clone();
-        t_context.pc = pc;
-        spawn(move || Self::exec(t_context))
+    fn thread(ctx: &Context, pc: usize) -> JoinHandle<bool> {
+        let mut t_ctx = ctx.clone();
+        t_ctx.pc = pc;
+        spawn(move || Self::exec(t_ctx))
     }
 }
 
