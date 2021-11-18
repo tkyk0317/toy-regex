@@ -7,6 +7,7 @@ use crate::parse::parser::{Ast, AstTree};
 #[derive(Debug, PartialEq, Clone)]
 pub enum RegexIR {
     Char(char),
+    AllChar,
     Split(usize, usize),
     Jmp(usize),
     Match,
@@ -47,6 +48,10 @@ impl Builder {
             AstTree::Literal(c) => {
                 self.pc += 1;
                 vec![RegexIR::Char(*c)]
+            }
+            AstTree::Dot => {
+                self.pc += 1;
+                vec![RegexIR::AllChar]
             }
             AstTree::Plus(ast) => {
                 // xは今の命令を設定
@@ -108,7 +113,6 @@ impl Builder {
                 inst.extend(r_inst);
                 inst
             }
-            _ => panic!("[Builder::ast_to_inst] not support ast {:?}", ast),
         }
     }
 }
@@ -235,9 +239,32 @@ mod test {
         }
     }
 
-    #[should_panic]
     #[test]
-    fn test_builder_compile_not_support() {
-        Builder::new("a.").compile();
+    fn test_builder_compile_all_char() {
+        {
+            let ir = Builder::new(".").compile();
+
+            assert_eq!(2, ir.len());
+            assert_eq!(RegexIR::AllChar, ir[0]);
+            assert_eq!(RegexIR::Match, ir[1]);
+        }
+        {
+            let ir = Builder::new("a.").compile();
+
+            assert_eq!(3, ir.len());
+            assert_eq!(RegexIR::Char('a'), ir[0]);
+            assert_eq!(RegexIR::AllChar, ir[1]);
+            assert_eq!(RegexIR::Match, ir[2]);
+        }
+        {
+            let ir = Builder::new("a.b.").compile();
+
+            assert_eq!(5, ir.len());
+            assert_eq!(RegexIR::Char('a'), ir[0]);
+            assert_eq!(RegexIR::AllChar, ir[1]);
+            assert_eq!(RegexIR::Char('b'), ir[2]);
+            assert_eq!(RegexIR::AllChar, ir[3]);
+            assert_eq!(RegexIR::Match, ir[4]);
+        }
     }
 }

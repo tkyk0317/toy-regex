@@ -55,6 +55,15 @@ impl Machine {
 
         // 各命令を実行
         match context.inst[context.pc] {
+            RegexIR::AllChar => {
+                if context.sp >= context.target.len() {
+                    return false;
+                }
+                context.pc += 1;
+                context.sp += 1;
+
+                Self::exec(context)
+            }
             RegexIR::Char(regex_c) => {
                 if context.sp >= context.target.len() || regex_c != context.target[context.sp] {
                     return false;
@@ -221,6 +230,59 @@ mod test {
             assert_eq!(true, m.is_match("aabbb"));
             assert_eq!(false, m.is_match("aaabb"));
             assert_eq!(false, m.is_match(""));
+        }
+    }
+    #[test]
+    fn test_machine_dot() {
+        {
+            let mut m = Machine::new(".");
+
+            assert_eq!(true, m.is_match("a"));
+            assert_eq!(true, m.is_match("b"));
+            assert_eq!(false, m.is_match(""));
+        }
+        {
+            let mut m = Machine::new("..*");
+
+            assert_eq!(true, m.is_match("a"));
+            assert_eq!(true, m.is_match("b"));
+            assert_eq!(true, m.is_match("aaaaa"));
+            assert_eq!(false, m.is_match(""));
+        }
+        {
+            let mut m = Machine::new("a.");
+
+            assert_eq!(true, m.is_match("aa"));
+            assert_eq!(true, m.is_match("ab"));
+            assert_eq!(false, m.is_match("a"));
+            assert_eq!(false, m.is_match(""));
+        }
+        {
+            let mut m = Machine::new("a.b.");
+
+            assert_eq!(true, m.is_match("acbd"));
+            assert_eq!(true, m.is_match("axbz"));
+            assert_eq!(false, m.is_match("a"));
+            assert_eq!(false, m.is_match("ab"));
+            assert_eq!(false, m.is_match("acb"));
+        }
+        {
+            let mut m = Machine::new("a.b.c?");
+
+            assert_eq!(true, m.is_match("acbd"));
+            assert_eq!(true, m.is_match("acbdc"));
+            assert_eq!(true, m.is_match("acbdcc"));
+            assert_eq!(false, m.is_match("acb"));
+        }
+        {
+            let mut m = Machine::new("a.b.*c?");
+
+            assert_eq!(true, m.is_match("azbd"));
+            assert_eq!(true, m.is_match("acbdd"));
+            assert_eq!(true, m.is_match("acbddddd"));
+            assert_eq!(true, m.is_match("acbdddddc"));
+            assert_eq!(true, m.is_match("azb"));
+            assert_eq!(false, m.is_match("az"));
         }
     }
 }
