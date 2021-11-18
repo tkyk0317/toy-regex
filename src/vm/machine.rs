@@ -41,7 +41,7 @@ impl Machine {
     }
 
     // 仮想マシン実行
-    pub fn start(&mut self, str: &str) -> bool {
+    pub fn is_match(&mut self, str: &str) -> bool {
         // 各命令を実行
         let context = Context::new(self.inst.clone(), str.chars().collect());
         Self::exec(context)
@@ -96,19 +96,19 @@ mod test {
         {
             let mut m = Machine::new("a");
 
-            assert_eq!(true, m.start("a"));
-            assert_eq!(true, m.start("aa"));
-            assert_eq!(false, m.start("b"));
-            assert_eq!(false, m.start(""));
+            assert_eq!(true, m.is_match("a"));
+            assert_eq!(true, m.is_match("aa"));
+            assert_eq!(false, m.is_match("b"));
+            assert_eq!(false, m.is_match(""));
         }
         {
             let mut m = Machine::new("abc");
 
-            assert_eq!(true, m.start("abc"));
-            assert_eq!(true, m.start("abcd"));
-            assert_eq!(false, m.start("ab"));
-            assert_eq!(false, m.start("a"));
-            assert_eq!(false, m.start(""));
+            assert_eq!(true, m.is_match("abc"));
+            assert_eq!(true, m.is_match("abcd"));
+            assert_eq!(false, m.is_match("ab"));
+            assert_eq!(false, m.is_match("a"));
+            assert_eq!(false, m.is_match(""));
         }
     }
 
@@ -117,33 +117,33 @@ mod test {
         {
             let mut m = Machine::new("a+");
 
-            assert_eq!(true, m.start("a"));
-            assert_eq!(true, m.start("aa"));
-            assert_eq!(false, m.start("b"));
-            assert_eq!(false, m.start(""));
+            assert_eq!(true, m.is_match("a"));
+            assert_eq!(true, m.is_match("aa"));
+            assert_eq!(false, m.is_match("b"));
+            assert_eq!(false, m.is_match(""));
         }
         {
             let mut m = Machine::new("a+b+");
 
-            assert_eq!(true, m.start("ab"));
-            assert_eq!(true, m.start("aabb"));
-            assert_eq!(true, m.start("aaaaaab"));
-            assert_eq!(true, m.start("aaaaaabbbbbbbbbbb"));
-            assert_eq!(true, m.start("aabbc"));
-            assert_eq!(false, m.start("a"));
-            assert_eq!(false, m.start(""));
+            assert_eq!(true, m.is_match("ab"));
+            assert_eq!(true, m.is_match("aabb"));
+            assert_eq!(true, m.is_match("aaaaaab"));
+            assert_eq!(true, m.is_match("aaaaaabbbbbbbbbbb"));
+            assert_eq!(true, m.is_match("aabbc"));
+            assert_eq!(false, m.is_match("a"));
+            assert_eq!(false, m.is_match(""));
         }
         {
             let mut m = Machine::new("a+b+c+d+e+");
 
-            assert_eq!(true, m.start("abcde"));
-            assert_eq!(true, m.start("aabbccddee"));
+            assert_eq!(true, m.is_match("abcde"));
+            assert_eq!(true, m.is_match("aabbccddee"));
             assert_eq!(
                 true,
-                m.start("aaaaaaaaaaaabbbbbbbbbbbbcccccccccccccddddddddddddeeeeeeeeeeeeee")
+                m.is_match("aaaaaaaaaaaabbbbbbbbbbbbcccccccccccccddddddddddddeeeeeeeeeeeeee")
             );
-            assert_eq!(false, m.start("abcd"));
-            assert_eq!(false, m.start(""));
+            assert_eq!(false, m.is_match("abcd"));
+            assert_eq!(false, m.is_match(""));
         }
     }
 
@@ -152,32 +152,32 @@ mod test {
         {
             let mut m = Machine::new("a*");
 
-            assert_eq!(true, m.start(""));
-            assert_eq!(true, m.start("a"));
-            assert_eq!(true, m.start("aa"));
-            assert_eq!(true, m.start("aaaaaaaaaaaa"));
-            assert_eq!(true, m.start("b"));
+            assert_eq!(true, m.is_match(""));
+            assert_eq!(true, m.is_match("a"));
+            assert_eq!(true, m.is_match("aa"));
+            assert_eq!(true, m.is_match("aaaaaaaaaaaa"));
+            assert_eq!(true, m.is_match("b"));
         }
         {
             let mut m = Machine::new("aa*");
 
-            assert_eq!(true, m.start("a"));
-            assert_eq!(true, m.start("aa"));
-            assert_eq!(true, m.start("aaaaaaaaaaaa"));
-            assert_eq!(false, m.start("b"));
-            assert_eq!(false, m.start(""));
+            assert_eq!(true, m.is_match("a"));
+            assert_eq!(true, m.is_match("aa"));
+            assert_eq!(true, m.is_match("aaaaaaaaaaaa"));
+            assert_eq!(false, m.is_match("b"));
+            assert_eq!(false, m.is_match(""));
         }
         {
             let mut m = Machine::new("aa*bb*");
 
-            assert_eq!(true, m.start("ab"));
-            assert_eq!(true, m.start("aab"));
-            assert_eq!(true, m.start("aabb"));
-            assert_eq!(true, m.start("aaaaaaaaaaaabbbbbbbbbb"));
-            assert_eq!(false, m.start("a"));
-            assert_eq!(false, m.start("b"));
-            assert_eq!(false, m.start("c"));
-            assert_eq!(false, m.start(""));
+            assert_eq!(true, m.is_match("ab"));
+            assert_eq!(true, m.is_match("aab"));
+            assert_eq!(true, m.is_match("aabb"));
+            assert_eq!(true, m.is_match("aaaaaaaaaaaabbbbbbbbbb"));
+            assert_eq!(false, m.is_match("a"));
+            assert_eq!(false, m.is_match("b"));
+            assert_eq!(false, m.is_match("c"));
+            assert_eq!(false, m.is_match(""));
         }
     }
 
@@ -185,11 +185,11 @@ mod test {
     fn test_machine_or() {
         let mut m = Machine::new("a|b");
 
-        assert_eq!(true, m.start("a"));
-        assert_eq!(true, m.start("b"));
-        assert_eq!(true, m.start("aa"));
-        assert_eq!(true, m.start("bb"));
-        assert_eq!(false, m.start("c"));
-        assert_eq!(false, m.start(""));
+        assert_eq!(true, m.is_match("a"));
+        assert_eq!(true, m.is_match("b"));
+        assert_eq!(true, m.is_match("aa"));
+        assert_eq!(true, m.is_match("bb"));
+        assert_eq!(false, m.is_match("c"));
+        assert_eq!(false, m.is_match(""));
     }
 }

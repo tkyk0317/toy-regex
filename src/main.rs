@@ -23,8 +23,8 @@ struct Opt {
     input_file: Option<PathBuf>,
 
     // 正規表現エンジン切り替え
-    #[structopt(long, help = "[future func] Use vm engine")]
-    vm: Option<bool>,
+    #[structopt(long, help = "Use vm engine")]
+    vm: bool,
 }
 
 fn main() {
@@ -33,5 +33,5 @@ fn main() {
     let regex = Regex::new(opt.regex);
 
     // 正規表現実行
-    println!("{:?}", regex.exec(opt.input_str));
+    println!("{:?}", regex.exec(opt.input_str, opt.vm));
 }

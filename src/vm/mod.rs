@@ -1,2 +1,2 @@
 mod build;
-mod machine;
+pub mod machine;
