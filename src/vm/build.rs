@@ -60,6 +60,20 @@ impl Builder {
                 inst.push(ir);
                 inst
             }
+            AstTree::Question(ast) => {
+                // xはast命令に設定
+                let x = self.pc + 1;
+                let ast_inst = self.ast_to_inst(ast);
+
+                // yはast命令の後に設定
+                let y = self.pc + 1;
+
+                // 各命令をマージ
+                let mut inst = vec![RegexIR::Split(x, y)];
+                inst.extend(ast_inst);
+                self.pc += 1;
+                inst
+            }
             AstTree::Repeat(ast) => {
                 // xはast命令に設定
                 let cur = self.pc;
@@ -199,9 +213,31 @@ mod test {
         }
     }
 
+    #[test]
+    fn test_builder_compile_question() {
+        {
+            let ir = Builder::new("a?").compile();
+
+            assert_eq!(3, ir.len());
+            assert_eq!(RegexIR::Split(1, 2), ir[0]);
+            assert_eq!(RegexIR::Char('a'), ir[1]);
+            assert_eq!(RegexIR::Match, ir[2]);
+        }
+        {
+            let ir = Builder::new("a?b?").compile();
+
+            assert_eq!(5, ir.len());
+            assert_eq!(RegexIR::Split(1, 2), ir[0]);
+            assert_eq!(RegexIR::Char('a'), ir[1]);
+            assert_eq!(RegexIR::Split(3, 4), ir[2]);
+            assert_eq!(RegexIR::Char('b'), ir[3]);
+            assert_eq!(RegexIR::Match, ir[4]);
+        }
+    }
+
     #[should_panic]
     #[test]
     fn test_builder_compile_not_support() {
-        Builder::new("a?").compile();
+        Builder::new("a.").compile();
     }
 }

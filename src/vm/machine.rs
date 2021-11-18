@@ -192,4 +192,35 @@ mod test {
         assert_eq!(false, m.is_match("c"));
         assert_eq!(false, m.is_match(""));
     }
+
+    #[test]
+    fn test_machine_question() {
+        {
+            let mut m = Machine::new("a?");
+
+            assert_eq!(true, m.is_match(""));
+            assert_eq!(true, m.is_match("a"));
+            assert_eq!(true, m.is_match("aa"));
+            assert_eq!(true, m.is_match("aaa"));
+            assert_eq!(true, m.is_match("b"));
+        }
+        {
+            let mut m = Machine::new("aa?");
+
+            assert_eq!(true, m.is_match("a"));
+            assert_eq!(true, m.is_match("aa"));
+            assert_eq!(true, m.is_match("aaa"));
+            assert_eq!(false, m.is_match("b"));
+            assert_eq!(false, m.is_match(""));
+        }
+        {
+            let mut m = Machine::new("aa?bb?");
+
+            assert_eq!(true, m.is_match("ab"));
+            assert_eq!(true, m.is_match("aabb"));
+            assert_eq!(true, m.is_match("aabbb"));
+            assert_eq!(false, m.is_match("aaabb"));
+            assert_eq!(false, m.is_match(""));
+        }
+    }
 }
