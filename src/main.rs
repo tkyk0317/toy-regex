@@ -1,11 +1,6 @@
-mod automaton;
-mod parse;
-mod regex;
-mod vm;
-
-use regex::Regex;
 use std::path::PathBuf;
 use structopt::StructOpt;
+use toy_regex::regex::Regex;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "toy-regex", about = "Regular expression tool for learning")]
@@ -30,8 +25,8 @@ struct Opt {
 fn main() {
     // コマンドラインから正規表現エンジン作成
     let opt = Opt::from_args();
-    let regex = Regex::new(opt.regex);
+    let regex = Regex::new(&opt.regex);
 
     // 正規表現実行
-    println!("{:?}", regex.exec(opt.input_str, opt.vm));
+    println!("{:?}", regex.exec(&opt.input_str, opt.vm));
 }
