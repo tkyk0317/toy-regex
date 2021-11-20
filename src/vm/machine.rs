@@ -1,16 +1,15 @@
 #![allow(dead_code)]
 
 use crate::vm::build::{Builder, RegexIR};
-use std::sync::Arc;
-use std::thread::{spawn, JoinHandle};
+use std::rc::Rc;
 
 // コンテキスト
 #[derive(Debug, Clone)]
 struct Context {
-    sp: usize,               // string pointer
-    pc: usize,               // program counter
-    inst: Arc<Vec<RegexIR>>, // instructions
-    target: Arc<Vec<char>>,  // target string
+    sp: usize,              // string pointer
+    pc: usize,              // program counter
+    inst: Rc<Vec<RegexIR>>, // instructions
+    target: Rc<Vec<char>>,  // target string
 }
 
 impl Context {
@@ -18,8 +17,8 @@ impl Context {
         Context {
             pc: 0,
             sp: 0,
-            inst: Arc::new(inst),
-            target: Arc::new(target),
+            inst: Rc::new(inst),
+            target: Rc::new(target),
         }
     }
 
@@ -47,45 +46,36 @@ impl Machine {
         Self::exec(ctx)
     }
 
-    // 命令実行
+    // 正規表現VM実行
     fn exec(mut ctx: Context) -> bool {
-        if ctx.pc >= ctx.inst.len() {
-            return false;
-        }
+        loop {
+            if ctx.pc >= ctx.inst.len() {
+                return false;
+            }
 
-        // 各命令を実行
-        match ctx.inst[ctx.pc] {
-            RegexIR::AllChar if ctx.sp < ctx.target.len() => {
-                ctx.pc += 1;
-                ctx.sp += 1;
-                Self::exec(ctx)
-            }
-            RegexIR::Char(c) if ctx.sp < ctx.target.len() && c == ctx.target[ctx.sp] => {
-                ctx.pc += 1;
-                ctx.sp += 1;
-                Self::exec(ctx)
-            }
-            RegexIR::Split(x, y) => {
+            match ctx.inst[ctx.pc] {
+                RegexIR::AllChar if ctx.sp < ctx.target.len() => {
+                    ctx.pc += 1;
+                    ctx.sp += 1;
+                }
+                RegexIR::Char(c) if ctx.sp < ctx.target.len() && c == ctx.target[ctx.sp] => {
+                    ctx.pc += 1;
+                    ctx.sp += 1;
+                }
+                RegexIR::Jmp(x) => ctx.pc = x,
+                RegexIR::Match => return true,
                 // PC位置を変更し、スレッド起動
-                let t1 = Self::thread(&ctx, x);
-                let t2 = Self::thread(&ctx, y);
-
-                t1.join().unwrap() | t2.join().unwrap()
-            }
-            RegexIR::Jmp(x) => {
-                ctx.pc = x;
-                Self::exec(ctx)
-            }
-            RegexIR::Match => true,
-            _ => false,
+                RegexIR::Split(x, y) => return Self::thread(&ctx, x) | Self::thread(&ctx, y),
+                _ => return false,
+            };
         }
     }
 
     // スレッド起動
-    fn thread(ctx: &Context, pc: usize) -> JoinHandle<bool> {
+    fn thread(ctx: &Context, pc: usize) -> bool {
         let mut t_ctx = ctx.clone();
         t_ctx.pc = pc;
-        spawn(move || Self::exec(t_ctx))
+        Self::exec(t_ctx)
     }
 }
 
