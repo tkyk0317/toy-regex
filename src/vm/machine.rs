@@ -48,6 +48,8 @@ impl Machine {
 
     // 正規表現VM実行
     fn exec(mut ctx: Context) -> bool {
+        let mut threads: Vec<Context> = vec![];
+
         loop {
             if ctx.pc >= ctx.inst.len() {
                 return false;
@@ -65,17 +67,32 @@ impl Machine {
                 RegexIR::Jmp(x) => ctx.pc = x,
                 RegexIR::Match => return true,
                 // PC位置を変更し、スレッド起動
-                RegexIR::Split(x, y) => return Self::thread(&ctx, x) | Self::thread(&ctx, y),
-                _ => return false,
+                RegexIR::Split(x, y) => {
+                    // 切り替え先を登録し、切り替え
+                    Self::add_thread(&mut threads, &ctx, x, y);
+                    ctx = threads.pop().unwrap();
+                }
+                _ => {
+                    // 切り替え先がある場合は切り替え
+                    if threads.is_empty() {
+                        return false;
+                    } else {
+                        ctx = threads.pop().unwrap();
+                    }
+                }
             };
         }
     }
 
-    // スレッド起動
-    fn thread(ctx: &Context, pc: usize) -> bool {
-        let mut t_ctx = ctx.clone();
-        t_ctx.pc = pc;
-        Self::exec(t_ctx)
+    // スレッド登録
+    fn add_thread(threads: &mut Vec<Context>, cur_ctx: &Context, x: usize, y: usize) {
+        let mut x_ctx = cur_ctx.clone();
+        x_ctx.pc = x;
+        threads.push(x_ctx);
+
+        let mut y_ctx = cur_ctx.clone();
+        y_ctx.pc = y;
+        threads.push(y_ctx);
     }
 }
 
@@ -266,6 +283,23 @@ mod test {
             assert_eq!(true, m.is_match("acbdddddc"));
             assert_eq!(true, m.is_match("azb"));
             assert_eq!(false, m.is_match("az"));
+        }
+        {
+            let mut m = Machine::new(".*a");
+
+            assert_eq!(true, m.is_match("ba"));
+            assert_eq!(true, m.is_match("a"));
+            assert_eq!(false, m.is_match(""));
+        }
+    }
+
+    #[test]
+    fn test_machine_long_str() {
+        {
+            let mut m = Machine::new(".*a");
+
+            let s = String::from_utf8(vec![b'a'; 1000000]).unwrap();
+            assert_eq!(true, m.is_match(&s));
         }
     }
 }
