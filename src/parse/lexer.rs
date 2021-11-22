@@ -9,6 +9,8 @@ pub enum Token {
     Or,
     Plus,
     Question,
+    LeftParen,
+    RightParen,
 }
 
 pub struct Lexer<'a> {
@@ -32,6 +34,8 @@ impl<'a> Lexer<'a> {
                 '+' => Token::Plus,
                 '|' => Token::Or,
                 '?' => Token::Question,
+                '(' => Token::LeftParen,
+                ')' => Token::RightParen,
                 _ => panic!("[Lexer::scan] not support char: {:?}", c),
             })
             .collect()
@@ -121,5 +125,21 @@ mod test {
         assert_eq!(2, tokens.len());
         assert_eq!(Token::Character('a'), tokens[0]);
         assert_eq!(Token::Question, tokens[1]);
+    }
+
+    #[test]
+    fn test_scan_paren() {
+        let tokens = Lexer::new("(ab)|(cd)").scan();
+
+        assert_eq!(9, tokens.len());
+        assert_eq!(Token::LeftParen, tokens[0]);
+        assert_eq!(Token::Character('a'), tokens[1]);
+        assert_eq!(Token::Character('b'), tokens[2]);
+        assert_eq!(Token::RightParen, tokens[3]);
+        assert_eq!(Token::Or, tokens[4]);
+        assert_eq!(Token::LeftParen, tokens[5]);
+        assert_eq!(Token::Character('c'), tokens[6]);
+        assert_eq!(Token::Character('d'), tokens[7]);
+        assert_eq!(Token::RightParen, tokens[8]);
     }
 }

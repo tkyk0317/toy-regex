@@ -57,6 +57,7 @@ impl Builder {
                 // xは今の命令を設定
                 let x = self.pc;
                 let mut inst = self.ast_to_inst(ast);
+
                 // yは次の命令を設定
                 let y = self.pc + 1;
                 let ir = RegexIR::Split(x, y);

@@ -61,7 +61,7 @@ impl<'a> Ast<'a> {
         }
 
         match self.tokens[self.index] {
-            Token::Character(_) | Token::Dot => {
+            Token::Character(_) | Token::Dot | Token::LeftParen => {
                 let f2 = self.seq();
                 AstTree::Concat(Box::new(f1), Box::new(f2))
             }
@@ -82,21 +82,21 @@ impl<'a> Ast<'a> {
                 AstTree::Repeat(Box::new(f))
             }
             Token::Question => {
-                let q = self.question();
+                let q = self.question(f);
                 self.next();
                 q
             }
             Token::Plus => {
                 // プラス演算子の分を読み取って、インスタンスを返す
-                let f = self.plus();
+                let p = self.plus(f);
                 self.next();
-                f
+                p
             }
             _ => f,
         }
     }
 
-    // Literal | '.' | sub_expr
+    // Literal | '.' | '(' sub_expr ')'
     fn factor(&mut self) -> AstTree {
         match self.tokens[self.index] {
             Token::Dot => {
@@ -107,32 +107,31 @@ impl<'a> Ast<'a> {
                 self.next();
                 AstTree::Literal(c)
             }
+            Token::LeftParen => {
+                self.next();
+                let p = self.sub_expr();
+                if Token::RightParen != self.tokens[self.index] {
+                    panic!(
+                        "[Parser::factor] cannot find right-paren ({:?})",
+                        self.tokens[self.index]
+                    )
+                }
+
+                self.next();
+                p
+            }
             _ => self.sub_expr(),
         }
     }
 
     // プラス演算子作成
-    fn plus(&mut self) -> AstTree {
-        // 前の文字よりインスタンスを作成
-        match self.tokens[self.index - 1] {
-            Token::Character(c) => AstTree::Plus(Box::new(AstTree::Literal(c))),
-            _ => panic!(
-                "[Parser::plus] prev token is not character ({:?}",
-                self.tokens[self.index - 1]
-            ),
-        }
+    fn plus(&mut self, ast: AstTree) -> AstTree {
+        AstTree::Plus(Box::new(ast))
     }
 
     // ?演算子作成
-    fn question(&mut self) -> AstTree {
-        // 前の文字よりインスタンスを作成
-        match self.tokens[self.index - 1] {
-            Token::Character(c) => AstTree::Question(Box::new(AstTree::Literal(c))),
-            _ => panic!(
-                "[Parser::question] prev token is not character ({:?}",
-                self.tokens[self.index - 1]
-            ),
-        }
+    fn question(&mut self, ast: AstTree) -> AstTree {
+        AstTree::Question(Box::new(ast))
     }
 
     // 次の要素へ移動
@@ -270,6 +269,51 @@ mod test {
                 ast
             )
         }
+        {
+            let tokens = vec![
+                Token::Character('a'),
+                Token::Or,
+                Token::Character('b'),
+                Token::Dot,
+                Token::Asterisk,
+            ];
+            let ast = Ast::new(&tokens).parse();
+            assert_eq!(
+                AstTree::Or(
+                    Box::new(AstTree::Literal('a')),
+                    Box::new(AstTree::Concat(
+                        Box::new(AstTree::Literal('b')),
+                        Box::new(AstTree::Repeat(Box::new(AstTree::Dot)))
+                    ))
+                ),
+                ast
+            )
+        }
+        {
+            let tokens = vec![
+                Token::Dot,
+                Token::Asterisk,
+                Token::Character('a'),
+                Token::Or,
+                Token::Character('b'),
+                Token::Dot,
+                Token::Asterisk,
+            ];
+            let ast = Ast::new(&tokens).parse();
+            assert_eq!(
+                AstTree::Or(
+                    Box::new(AstTree::Concat(
+                        Box::new(AstTree::Repeat(Box::new(AstTree::Dot))),
+                        Box::new(AstTree::Literal('a'))
+                    )),
+                    Box::new(AstTree::Concat(
+                        Box::new(AstTree::Literal('b')),
+                        Box::new(AstTree::Repeat(Box::new(AstTree::Dot)))
+                    ))
+                ),
+                ast
+            )
+        }
     }
 
     #[test]
@@ -278,5 +322,149 @@ mod test {
         let ast = Ast::new(&tokens).parse();
 
         assert_eq!(AstTree::Question(Box::new(AstTree::Literal('a'))), ast)
+    }
+
+    #[test]
+    fn test_ast_paren() {
+        {
+            let tokens = vec![Token::LeftParen, Token::Character('a'), Token::RightParen];
+            let ast = Ast::new(&tokens).parse();
+            assert_eq!(AstTree::Literal('a'), ast)
+        }
+        {
+            let tokens = vec![
+                Token::LeftParen,
+                Token::Character('a'),
+                Token::Character('b'),
+                Token::RightParen,
+            ];
+            let ast = Ast::new(&tokens).parse();
+            assert_eq!(
+                AstTree::Concat(
+                    Box::new(AstTree::Literal('a')),
+                    Box::new(AstTree::Literal('b')),
+                ),
+                ast
+            )
+        }
+        {
+            let tokens = vec![
+                Token::LeftParen,
+                Token::Character('a'),
+                Token::Character('b'),
+                Token::RightParen,
+                Token::Or,
+                Token::LeftParen,
+                Token::Character('c'),
+                Token::Character('d'),
+                Token::RightParen,
+            ];
+            let ast = Ast::new(&tokens).parse();
+            assert_eq!(
+                AstTree::Or(
+                    Box::new(AstTree::Concat(
+                        Box::new(AstTree::Literal('a')),
+                        Box::new(AstTree::Literal('b')),
+                    )),
+                    Box::new(AstTree::Concat(
+                        Box::new(AstTree::Literal('c')),
+                        Box::new(AstTree::Literal('d')),
+                    ))
+                ),
+                ast
+            )
+        }
+        {
+            let tokens = vec![
+                Token::LeftParen,
+                Token::Character('a'),
+                Token::Character('b'),
+                Token::RightParen,
+                Token::Asterisk,
+            ];
+            let ast = Ast::new(&tokens).parse();
+            assert_eq!(
+                AstTree::Repeat(Box::new(AstTree::Concat(
+                    Box::new(AstTree::Literal('a')),
+                    Box::new(AstTree::Literal('b')),
+                ))),
+                ast
+            )
+        }
+        {
+            let tokens = vec![
+                Token::LeftParen,
+                Token::Character('a'),
+                Token::Character('b'),
+                Token::Character('c'),
+                Token::RightParen,
+                Token::Asterisk,
+            ];
+            let ast = Ast::new(&tokens).parse();
+            assert_eq!(
+                AstTree::Repeat(Box::new(AstTree::Concat(
+                    Box::new(AstTree::Literal('a')),
+                    Box::new(AstTree::Concat(
+                        Box::new(AstTree::Literal('b')),
+                        Box::new(AstTree::Literal('c'))
+                    ))
+                ))),
+                ast
+            )
+        }
+        {
+            let tokens = vec![
+                Token::LeftParen,
+                Token::Character('a'),
+                Token::Character('b'),
+                Token::RightParen,
+                Token::Question,
+            ];
+            let ast = Ast::new(&tokens).parse();
+            assert_eq!(
+                AstTree::Question(Box::new(AstTree::Concat(
+                    Box::new(AstTree::Literal('a')),
+                    Box::new(AstTree::Literal('b')),
+                ))),
+                ast
+            )
+        }
+        {
+            let tokens = vec![
+                Token::LeftParen,
+                Token::Character('a'),
+                Token::Character('b'),
+                Token::RightParen,
+                Token::Plus,
+            ];
+            let ast = Ast::new(&tokens).parse();
+            assert_eq!(
+                AstTree::Plus(Box::new(AstTree::Concat(
+                    Box::new(AstTree::Literal('a')),
+                    Box::new(AstTree::Literal('b')),
+                ))),
+                ast
+            )
+        }
+        {
+            let tokens = vec![
+                Token::LeftParen,
+                Token::Character('a'),
+                Token::Character('b'),
+                Token::RightParen,
+                Token::Dot,
+            ];
+            let ast = Ast::new(&tokens).parse();
+            assert_eq!(
+                AstTree::Concat(
+                    Box::new(AstTree::Concat(
+                        Box::new(AstTree::Literal('a')),
+                        Box::new(AstTree::Literal('b')),
+                    )),
+                    Box::new(AstTree::Dot)
+                ),
+                ast
+            )
+        }
     }
 }

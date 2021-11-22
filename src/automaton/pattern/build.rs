@@ -44,11 +44,14 @@ impl Builder {
             AstTree::Literal(c) => Box::new(Literal::new(*c)),
             AstTree::Plus(ast) => match **ast {
                 AstTree::Literal(c) => Box::new(Plus::new(c)),
-                _ => panic!(),
+                _ => panic!("[Builder::to_pattern] not support ast in plus ({:?})", ast),
             },
             AstTree::Question(ast) => match **ast {
                 AstTree::Literal(c) => Box::new(Question::new(c)),
-                _ => panic!(),
+                _ => panic!(
+                    "[Builder::to_pattern] not support ast in question ({:?})",
+                    ast
+                ),
             },
             AstTree::Dot => Box::new(Dot::new()),
         }
