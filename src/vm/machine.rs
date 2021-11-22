@@ -89,7 +89,6 @@ impl Machine {
         let mut x_ctx = cur_ctx.clone();
         x_ctx.pc = x;
         threads.push(x_ctx);
-
         let mut y_ctx = cur_ctx.clone();
         y_ctx.pc = y;
         threads.push(y_ctx);
