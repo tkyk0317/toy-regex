@@ -21,7 +21,7 @@ struct Opt {
     #[structopt(long, help = "Use vm engine")]
     vm: bool,
 
-    // 部分文字列でマッチしない
+    // 部分文字でマッチ
     #[structopt(
         long,
         parse(try_from_str),
@@ -34,8 +34,10 @@ struct Opt {
 fn main() {
     // コマンドラインから正規表現エンジン作成
     let opt = Opt::from_args();
-    let regex = Regex::new(&opt.regex);
 
     // 正規表現実行
-    println!("{:?}", regex.exec(&opt.input_str, opt.vm, opt.substring));
+    println!(
+        "{:?}",
+        Regex::new(&opt.regex).exec(&opt.input_str, opt.vm, opt.substring)
+    );
 }
