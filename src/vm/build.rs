@@ -98,16 +98,16 @@ impl Builder {
             AstTree::Or(left, right) => {
                 // xは、leftの命令へ設定
                 let x = self.pc + 1;
+                self.pc += 1; // split命令分
                 let l_inst = self.ast_to_inst(left);
-                self.pc += 1; // Jmp命令を差し込むので加算
+                self.pc += 1; // Jmp命令分
 
                 // yはright命令に設定
-                let y = self.pc + 1;
+                let y = self.pc;
                 let r_inst = self.ast_to_inst(right);
 
                 // IRを構築
                 let mut inst = vec![RegexIR::Split(x, y)];
-                self.pc += 1;
                 inst.extend(l_inst);
                 inst.push(RegexIR::Jmp(self.pc));
                 inst.extend(r_inst);
@@ -214,6 +214,19 @@ mod test {
             assert_eq!(RegexIR::Jmp(4), ir[2]);
             assert_eq!(RegexIR::Char('b'), ir[3]);
             assert_eq!(RegexIR::Match, ir[4]);
+        }
+        {
+            let ir = Builder::new(".*a|b").compile();
+
+            assert_eq!(8, ir.len());
+            assert_eq!(RegexIR::Split(1, 6), ir[0]);
+            assert_eq!(RegexIR::Split(2, 4), ir[1]);
+            assert_eq!(RegexIR::AllChar, ir[2]);
+            assert_eq!(RegexIR::Jmp(1), ir[3]);
+            assert_eq!(RegexIR::Char('a'), ir[4]);
+            assert_eq!(RegexIR::Jmp(7), ir[5]);
+            assert_eq!(RegexIR::Char('b'), ir[6]);
+            assert_eq!(RegexIR::Match, ir[7]);
         }
     }
 
