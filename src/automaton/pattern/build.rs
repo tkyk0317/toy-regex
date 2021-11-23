@@ -42,17 +42,8 @@ impl Builder {
                 Box::new(Repeat::new(pattern))
             }
             AstTree::Literal(c) => Box::new(Literal::new(*c)),
-            AstTree::Plus(ast) => match **ast {
-                AstTree::Literal(c) => Box::new(Plus::new(c)),
-                _ => panic!("[Builder::to_pattern] not support ast in plus ({:?})", ast),
-            },
-            AstTree::Question(ast) => match **ast {
-                AstTree::Literal(c) => Box::new(Question::new(c)),
-                _ => panic!(
-                    "[Builder::to_pattern] not support ast in question ({:?})",
-                    ast
-                ),
-            },
+            AstTree::Plus(ast) => Box::new(Plus::new(self.to_pattern(ast), self.to_pattern(ast))),
+            AstTree::Question(ast) => Box::new(Question::new(self.to_pattern(ast))),
             AstTree::Dot => Box::new(Dot::new()),
         }
     }

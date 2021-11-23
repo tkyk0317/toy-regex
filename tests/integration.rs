@@ -161,10 +161,41 @@ mod test {
 
             assert_eq!(true, re.exec("ab", true, true));
             assert_eq!(true, re.exec("ab", true, false));
+            assert_eq!(true, re.exec("ab", false, true));
+            assert_eq!(true, re.exec("ab", false, false));
 
-            // TODO: NFA型エンジンにおいて、PlusとQuestionの引数にAstTreeが入ってきてもインスタンス構築ができるようにする
-            //assert_eq!(true, re.exec("ab", false, true));
-            //assert_eq!(true, re.exec("ab", false, false));
+            assert_eq!(true, re.exec("abababab", true, true));
+            assert_eq!(true, re.exec("abababab", true, false));
+            assert_eq!(true, re.exec("abababab", false, true));
+            assert_eq!(true, re.exec("abababab", false, false));
+
+            assert_eq!(false, re.exec("a", true, true));
+            assert_eq!(false, re.exec("a", true, false));
+            assert_eq!(false, re.exec("a", false, true));
+            assert_eq!(false, re.exec("a", false, false));
+
+            assert_eq!(false, re.exec("", true, true));
+            assert_eq!(false, re.exec("", true, false));
+            assert_eq!(false, re.exec("", false, true));
+            assert_eq!(false, re.exec("", false, false));
+        }
+        {
+            let re = Regex::new("(ab)?");
+
+            assert_eq!(true, re.exec("ab", true, true));
+            assert_eq!(true, re.exec("ab", true, false));
+            assert_eq!(true, re.exec("ab", false, true));
+            assert_eq!(true, re.exec("ab", false, false));
+
+            assert_eq!(true, re.exec("abababab", true, true));
+            assert_eq!(true, re.exec("abababab", true, false));
+            assert_eq!(true, re.exec("abababab", false, true));
+            assert_eq!(false, re.exec("abababab", false, false));
+
+            assert_eq!(true, re.exec("", true, true));
+            assert_eq!(true, re.exec("", true, false));
+            assert_eq!(true, re.exec("", false, true));
+            assert_eq!(true, re.exec("", false, false));
         }
     }
 }

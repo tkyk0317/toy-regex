@@ -3,23 +3,23 @@
 use crate::automaton::farule::{FARule, State};
 use crate::automaton::nfa::{NFADesign, NFARulebook};
 use crate::automaton::pattern::base::BasePattern;
-use crate::automaton::pattern::{empty::Empty, literal::Literal, or::Or};
+use crate::automaton::pattern::{empty::Empty, or::Or};
 use std::boxed::Box;
 
 #[derive(Debug)]
-pub struct Question {
-    pattern: Or<Literal, Empty>,
+pub struct Question<T: BasePattern + ?Sized> {
+    pattern: Or<T, Empty>,
 }
 
-impl Question {
-    pub fn new(c: char) -> Self {
+impl<T: BasePattern + ?Sized> Question<T> {
+    pub fn new(pattern: Box<T>) -> Self {
         Question {
-            pattern: Or::new(Box::new(Literal::new(c)), Box::new(Empty::new())),
+            pattern: Or::new(pattern, Box::new(Empty::new())),
         }
     }
 }
 
-impl BasePattern for Question {
+impl<T: BasePattern + ?Sized> BasePattern for Question<T> {
     fn is_match(&self, s: &str) -> bool {
         let rules = self.rules();
         NFADesign::new(
@@ -46,13 +46,14 @@ impl BasePattern for Question {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::automaton::pattern::concat::Concat;
+    use crate::automaton::pattern::{concat::Concat, literal::Literal};
 
     #[test]
     fn test_question() {
         // a?のテスト
         {
-            let q = Question::new('a');
+            let a = Box::new(Literal::new('a'));
+            let q = Question::new(a);
 
             assert_eq!(true, q.is_match("a"));
             assert_eq!(true, q.is_match(""));
@@ -60,7 +61,8 @@ mod test {
         }
         // a?bのテスト
         {
-            let q = Question::new('a');
+            let a = Box::new(Literal::new('a'));
+            let q = Question::new(a);
             let b = Literal::new('b');
             let c = Concat::new(Box::new(q), Box::new(b));
 

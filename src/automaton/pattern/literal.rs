@@ -11,7 +11,7 @@ pub struct Literal {
     start_state: State,
     accept_state: State,
 }
-// TODO: 部分文字列にマッチさせる。現在は完全マッチ
+
 impl Literal {
     pub fn new(c: char) -> Self {
         Literal {

@@ -3,25 +3,24 @@
 use crate::automaton::farule::{FARule, State};
 use crate::automaton::nfa::{NFADesign, NFARulebook};
 use crate::automaton::pattern::base::BasePattern;
-use crate::automaton::pattern::{concat::Concat, literal::Literal, repeat::Repeat};
+use crate::automaton::pattern::{concat::Concat, repeat::Repeat};
 use std::boxed::Box;
 
 #[derive(Debug)]
-pub struct Plus {
-    pattern: Concat<Literal, Repeat<Literal>>,
+pub struct Plus<T: BasePattern + ?Sized> {
+    pattern: Box<Concat<T, Repeat<T>>>,
 }
 
-impl Plus {
-    pub fn new(c: char) -> Self {
-        let l1 = Box::new(Literal::new(c));
-        let l2 = Box::new(Literal::new(c));
+impl<T: BasePattern + ?Sized> Plus<T> {
+    pub fn new(l: Box<T>, r: Box<T>) -> Self {
+        let repeat = Box::new(Repeat::new(r));
         Plus {
-            pattern: Concat::new(l1, Box::new(Repeat::new(l2))),
+            pattern: Box::new(Concat::new(l, repeat)),
         }
     }
 }
 
-impl BasePattern for Plus {
+impl<T: BasePattern + ?Sized> BasePattern for Plus<T> {
     fn is_match(&self, s: &str) -> bool {
         let rules = self.rules();
         NFADesign::new(
@@ -48,16 +47,19 @@ impl BasePattern for Plus {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::automaton::pattern::literal::Literal;
 
     #[test]
     fn test_plus() {
-        let p = Plus::new('a');
+        let l = Box::new(Literal::new('a'));
+        let r = Box::new(Literal::new('a'));
+        let plus = Plus::new(l, r);
 
-        assert_eq!(true, p.is_match("a"));
-        assert_eq!(true, p.is_match("aa"));
-        assert_eq!(true, p.is_match("aaaaaaaaa"));
-        assert_eq!(false, p.is_match("ab"));
-        assert_eq!(false, p.is_match(""));
-        assert_eq!(false, p.is_match("ba"));
+        assert_eq!(true, plus.is_match("a"));
+        assert_eq!(true, plus.is_match("aa"));
+        assert_eq!(true, plus.is_match("aaaaaaaaa"));
+        assert_eq!(false, plus.is_match("ab"));
+        assert_eq!(false, plus.is_match(""));
+        assert_eq!(false, plus.is_match("ba"));
     }
 }
