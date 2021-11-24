@@ -58,29 +58,29 @@ mod test {
         {
             let d = Dot::new();
 
-            assert_eq!(true, d.is_match("a"));
-            assert_eq!(true, d.is_match("d"));
-            assert_eq!(false, d.is_match(""));
+            assert!(d.is_match("a"));
+            assert!(d.is_match("d"));
+            assert!(!d.is_match(""));
         }
         {
             let d = Dot::new();
             let r = Repeat::new(Box::new(d));
 
-            assert_eq!(true, r.is_match("a"));
-            assert_eq!(true, r.is_match("aaaaaaaaaaaaaa"));
-            assert_eq!(true, r.is_match("b"));
-            assert_eq!(true, r.is_match(""));
+            assert!(r.is_match("a"));
+            assert!(r.is_match("aaaaaaaaaaaaaa"));
+            assert!(r.is_match("b"));
+            assert!(r.is_match(""));
         }
         {
             let l = Literal::new('a');
             let d = Dot::new();
             let c = Concat::new(Box::new(l), Box::new(d));
 
-            assert_eq!(true, c.is_match("ab"));
-            assert_eq!(true, c.is_match("az"));
-            assert_eq!(false, c.is_match("abc"));
-            assert_eq!(false, c.is_match("a"));
-            assert_eq!(false, c.is_match(""));
+            assert!(c.is_match("ab"));
+            assert!(c.is_match("az"));
+            assert!(!c.is_match("abc"));
+            assert!(!c.is_match("a"));
+            assert!(!c.is_match(""));
         }
     }
 }

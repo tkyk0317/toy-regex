@@ -124,14 +124,8 @@ mod test {
             FARule::new(State::new(3), TransitionType::Character('b'), State::new(3)),
         ]);
 
-        assert_eq!(
-            true,
-            Dfa::new(State::new(1), &vec![State::new(1), State::new(3)], &rule).accepting()
-        );
-        assert_eq!(
-            true,
-            Dfa::new(State::new(1), &vec![State::new(1)], &rule).accepting()
-        );
+        assert!(Dfa::new(State::new(1), &vec![State::new(1), State::new(3)], &rule).accepting());
+        assert!(Dfa::new(State::new(1), &vec![State::new(1)], &rule).accepting());
     }
 
     #[test]
@@ -148,7 +142,7 @@ mod test {
         let mut dfa = Dfa::new(State::new(1), &accept_statuses, &rule);
         let _ = dfa.read_string("baaab");
 
-        assert_eq!(true, dfa.accepting());
+        assert!(dfa.accepting());
     }
 
     #[test]
@@ -163,6 +157,6 @@ mod test {
         ]);
         let accept_statuses = vec![State::new(3)];
         let design = DFADesign::new(State::new(1), &accept_statuses, &rule);
-        assert_eq!(true, design.accept("baaab"));
+        assert!(design.accept("baaab"));
     }
 }

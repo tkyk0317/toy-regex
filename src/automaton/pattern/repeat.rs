@@ -73,12 +73,12 @@ mod test {
         let l = Literal::new('a');
         let r = Repeat::new(Box::new(l));
 
-        assert_eq!(true, r.is_match(""));
-        assert_eq!(true, r.is_match("a"));
-        assert_eq!(true, r.is_match("aa"));
-        assert_eq!(true, r.is_match("aaa"));
-        assert_eq!(false, r.is_match("b"));
-        assert_eq!(false, r.is_match("ba"));
-        assert_eq!(false, r.is_match("aab"));
+        assert!(r.is_match(""));
+        assert!(r.is_match("a"));
+        assert!(r.is_match("aa"));
+        assert!(r.is_match("aaa"));
+        assert!(!r.is_match("b"));
+        assert!(!r.is_match("ba"));
+        assert!(!r.is_match("aab"));
     }
 }

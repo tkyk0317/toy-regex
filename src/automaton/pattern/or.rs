@@ -80,11 +80,11 @@ mod test {
             let r = Literal::new('b');
             let o = Or::new(Box::new(l), Box::new(r));
 
-            assert_eq!(true, o.is_match("a"));
-            assert_eq!(true, o.is_match("b"));
-            assert_eq!(false, o.is_match("c"));
-            assert_eq!(false, o.is_match("aa"));
-            assert_eq!(false, o.is_match(""));
+            assert!(o.is_match("a"));
+            assert!(o.is_match("b"));
+            assert!(!o.is_match("c"));
+            assert!(!o.is_match("aa"));
+            assert!(!o.is_match(""));
         }
         {
             let a = Literal::new('a');
@@ -93,11 +93,11 @@ mod test {
             let or1 = Or::new(Box::new(a), Box::new(b));
             let or2 = Or::new(Box::new(c), Box::new(or1));
 
-            assert_eq!(true, or2.is_match("a"));
-            assert_eq!(true, or2.is_match("b"));
-            assert_eq!(true, or2.is_match("c"));
-            assert_eq!(false, or2.is_match("d"));
-            assert_eq!(false, or2.is_match("aa"));
+            assert!(or2.is_match("a"));
+            assert!(or2.is_match("b"));
+            assert!(or2.is_match("c"));
+            assert!(!or2.is_match("d"));
+            assert!(!or2.is_match("aa"));
         }
     }
 }

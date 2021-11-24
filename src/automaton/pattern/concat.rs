@@ -65,8 +65,8 @@ mod test {
             let r = Literal::new('b');
             let c = Concat::new(Box::new(l), Box::new(r));
 
-            assert_eq!(true, c.is_match("ab"));
-            assert_eq!(false, c.is_match("aa"));
+            assert!(c.is_match("ab"));
+            assert!(!c.is_match("aa"));
         }
         {
             let a = Literal::new('a');
@@ -75,8 +75,8 @@ mod test {
             let c2 = Concat::new(Box::new(b), Box::new(c));
             let c1 = Concat::new(Box::new(a), Box::new(c2));
 
-            assert_eq!(true, c1.is_match("abc"));
-            assert_eq!(false, c1.is_match("abcc"));
+            assert!(c1.is_match("abc"));
+            assert!(!c1.is_match("abcc"));
         }
         {
             let a = Literal::new('a');
@@ -85,16 +85,16 @@ mod test {
             let c1 = Concat::new(Box::new(a), Box::new(b));
             let c2 = Concat::new(Box::new(c1), Box::new(c));
 
-            assert_eq!(true, c2.is_match("abc"));
-            assert_eq!(false, c2.is_match("abcc"));
+            assert!(c2.is_match("abc"));
+            assert!(!c2.is_match("abcc"));
         }
         {
             let l = Literal::new('a');
             let r = Empty::new();
             let c = Concat::new(Box::new(l), Box::new(r));
 
-            assert_eq!(true, c.is_match("a\0"));
-            assert_eq!(false, c.is_match("ab"));
+            assert!(c.is_match("a\0"));
+            assert!(!c.is_match("ab"));
         }
     }
 }

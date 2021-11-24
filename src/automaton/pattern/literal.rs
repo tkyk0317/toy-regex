@@ -58,10 +58,10 @@ mod test {
     fn test_literal() {
         let l = Literal::new('a');
 
-        assert_eq!(false, l.is_match(""));
-        assert_eq!(true, l.is_match("a"));
-        assert_eq!(false, l.is_match("b"));
-        assert_eq!(false, l.is_match(" a"));
-        assert_eq!(false, l.is_match("a "));
+        assert!(!l.is_match(""));
+        assert!(l.is_match("a"));
+        assert!(!l.is_match("b"));
+        assert!(!l.is_match(" a"));
+        assert!(!l.is_match("a "));
     }
 }

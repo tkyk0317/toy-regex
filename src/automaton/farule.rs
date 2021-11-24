@@ -77,15 +77,15 @@ mod test {
     fn test_applies_to() {
         {
             let rule = FARule::new(State::new(1), TransitionType::Character('a'), State::new(2));
-            assert_eq!(true, rule.applies_to(&State::new(1), &Some('a')));
-            assert_eq!(false, rule.applies_to(&State::new(2), &Some('a')));
-            assert_eq!(false, rule.applies_to(&State::new(1), &None));
+            assert!(rule.applies_to(&State::new(1), &Some('a')));
+            assert!(!rule.applies_to(&State::new(2), &Some('a')));
+            assert!(!rule.applies_to(&State::new(1), &None));
         }
         {
             let rule = FARule::new(State::new(1), TransitionType::Epsilon, State::new(2));
-            assert_eq!(false, rule.applies_to(&State::new(1), &Some('a')));
-            assert_eq!(false, rule.applies_to(&State::new(2), &Some('a')));
-            assert_eq!(true, rule.applies_to(&State::new(1), &None));
+            assert!(!rule.applies_to(&State::new(1), &Some('a')));
+            assert!(!rule.applies_to(&State::new(2), &Some('a')));
+            assert!(rule.applies_to(&State::new(1), &None));
         }
     }
 }

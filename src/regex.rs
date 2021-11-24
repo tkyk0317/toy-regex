@@ -43,22 +43,22 @@ mod test {
     fn test_exec_at_dfa() {
         let re = Regex::new("a?bc");
 
-        assert_eq!(true, re.exec("bc", false, true));
-        assert_eq!(true, re.exec("abc", false, true));
-        assert_eq!(true, re.exec("aabc", false, true));
-        assert_eq!(false, re.exec("", false, true));
-        assert_eq!(false, re.exec("ab", false, true));
-        assert_eq!(false, re.exec("aab", false, true));
+        assert!(re.exec("bc", false, true));
+        assert!(re.exec("abc", false, true));
+        assert!(re.exec("aabc", false, true));
+        assert!(!re.exec("", false, true));
+        assert!(!re.exec("ab", false, true));
+        assert!(!re.exec("aab", false, true));
     }
 
     #[test]
     fn test_exec_at_vm() {
         let re = Regex::new("abc");
 
-        assert_eq!(true, re.exec("abc", true, true));
-        assert_eq!(true, re.exec("aabc", true, true));
-        assert_eq!(false, re.exec("", true, true));
-        assert_eq!(false, re.exec("ab", true, true));
-        assert_eq!(false, re.exec("aab", true, true));
+        assert!(re.exec("abc", true, true));
+        assert!(re.exec("aabc", true, true));
+        assert!(!re.exec("", true, true));
+        assert!(!re.exec("ab", true, true));
+        assert!(!re.exec("aab", true, true));
     }
 }

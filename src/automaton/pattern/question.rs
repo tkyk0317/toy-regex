@@ -55,9 +55,9 @@ mod test {
             let a = Box::new(Literal::new('a'));
             let q = Question::new(a);
 
-            assert_eq!(true, q.is_match("a"));
-            assert_eq!(true, q.is_match(""));
-            assert_eq!(false, q.is_match("aa"));
+            assert!(q.is_match("a"));
+            assert!(q.is_match(""));
+            assert!(!q.is_match("aa"));
         }
         // a?bのテスト
         {
@@ -66,10 +66,10 @@ mod test {
             let b = Literal::new('b');
             let c = Concat::new(Box::new(q), Box::new(b));
 
-            assert_eq!(true, c.is_match("ab"));
-            assert_eq!(true, c.is_match("b"));
-            assert_eq!(false, c.is_match("aab"));
-            assert_eq!(false, c.is_match(""));
+            assert!(c.is_match("ab"));
+            assert!(c.is_match("b"));
+            assert!(!c.is_match("aab"));
+            assert!(!c.is_match(""));
         }
     }
 }

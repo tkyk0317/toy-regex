@@ -55,11 +55,11 @@ mod test {
         let r = Box::new(Literal::new('a'));
         let plus = Plus::new(l, r);
 
-        assert_eq!(true, plus.is_match("a"));
-        assert_eq!(true, plus.is_match("aa"));
-        assert_eq!(true, plus.is_match("aaaaaaaaa"));
-        assert_eq!(false, plus.is_match("ab"));
-        assert_eq!(false, plus.is_match(""));
-        assert_eq!(false, plus.is_match("ba"));
+        assert!(plus.is_match("a"));
+        assert!(plus.is_match("aa"));
+        assert!(plus.is_match("aaaaaaaaa"));
+        assert!(!plus.is_match("ab"));
+        assert!(!plus.is_match(""));
+        assert!(!plus.is_match("ba"));
     }
 }

@@ -534,7 +534,7 @@ mod test {
             );
             nfa.read_string("bab");
 
-            assert_eq!(true, nfa.accepting());
+            assert!(nfa.accepting());
         }
         {
             let accept_states = vec![State::new(4)];
@@ -545,7 +545,7 @@ mod test {
             );
             nfa.read_string("bbbbb");
 
-            assert_eq!(true, nfa.accepting());
+            assert!(nfa.accepting());
         }
     }
 
@@ -565,9 +565,9 @@ mod test {
             let accept_statuses = vec![State::new(4)];
             let design = NFADesign::new(State::new(1), &accept_statuses, &rule);
 
-            assert_eq!(true, design.accept("bab"));
-            assert_eq!(true, design.accept("bbbbb"));
-            assert_eq!(false, design.accept("bbabb"));
+            assert!(design.accept("bab"));
+            assert!(design.accept("bbbbb"));
+            assert!(!design.accept("bbabb"));
         }
         {
             let rule = NFARulebook::new(vec![
@@ -583,13 +583,13 @@ mod test {
             let accept_statuses = vec![State::new(2), State::new(4)];
             let design = NFADesign::new(State::new(1), &accept_statuses, &rule);
 
-            assert_eq!(false, design.accept("a"));
-            assert_eq!(true, design.accept("aa"));
-            assert_eq!(true, design.accept("aaa"));
-            assert_eq!(true, design.accept("aaaa"));
-            assert_eq!(false, design.accept("aaaaa"));
-            assert_eq!(true, design.accept("aaaaaa"));
-            assert_eq!(true, design.accept("aaaaaa"));
+            assert!(!design.accept("a"));
+            assert!(design.accept("aa"));
+            assert!(design.accept("aaa"));
+            assert!(design.accept("aaaa"));
+            assert!(!design.accept("aaaaa"));
+            assert!(design.accept("aaaaaa"));
+            assert!(design.accept("aaaaaa"));
         }
     }
 
@@ -673,9 +673,9 @@ mod test {
             let mut converter = NFAConverter::new(State::new(1), &accept_statuses, &rule);
             let dfa = converter.build();
 
-            assert_eq!(true, dfa.accept("bab"));
-            assert_eq!(true, dfa.accept("bbbbb"));
-            assert_eq!(false, dfa.accept("bbabb"));
+            assert!(dfa.accept("bab"));
+            assert!(dfa.accept("bbbbb"));
+            assert!(!dfa.accept("bbabb"));
         }
         {
             let rule = NFARulebook::new(vec![
@@ -692,13 +692,13 @@ mod test {
             let mut converter = NFAConverter::new(State::new(1), &accept_statuses, &rule);
             let dfa = converter.build();
 
-            assert_eq!(false, dfa.accept("a"));
-            assert_eq!(true, dfa.accept("aa"));
-            assert_eq!(true, dfa.accept("aaa"));
-            assert_eq!(true, dfa.accept("aaaa"));
-            assert_eq!(false, dfa.accept("aaaaa"));
-            assert_eq!(true, dfa.accept("aaaaaa"));
-            assert_eq!(true, dfa.accept("aaaaaa"));
+            assert!(!dfa.accept("a"));
+            assert!(dfa.accept("aa"));
+            assert!(dfa.accept("aaa"));
+            assert!(dfa.accept("aaaa"));
+            assert!(!dfa.accept("aaaaa"));
+            assert!(dfa.accept("aaaaaa"));
+            assert!(dfa.accept("aaaaaa"));
         }
     }
 }

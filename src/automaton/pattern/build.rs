@@ -56,138 +56,138 @@ mod test {
     #[test]
     fn test_parser_literal() {
         {
-            assert_eq!(true, Builder::new("a").to_dfa().is_match("a"));
-            assert_eq!(false, Builder::new("a").to_dfa().is_match("b"));
+            assert!(Builder::new("a").to_dfa().is_match("a"));
+            assert!(!Builder::new("a").to_dfa().is_match("b"));
         }
         {
-            assert_eq!(true, Builder::new("ab").to_dfa().is_match("ab"));
-            assert_eq!(false, Builder::new("ab").to_dfa().is_match("a"));
-            assert_eq!(false, Builder::new("ab").to_dfa().is_match("b"));
-            assert_eq!(false, Builder::new("ab").to_dfa().is_match("aa"));
+            assert!(Builder::new("ab").to_dfa().is_match("ab"));
+            assert!(!Builder::new("ab").to_dfa().is_match("a"));
+            assert!(!Builder::new("ab").to_dfa().is_match("b"));
+            assert!(!Builder::new("ab").to_dfa().is_match("aa"));
         }
         {
-            assert_eq!(true, Builder::new("abcde").to_dfa().is_match("abcde"));
-            assert_eq!(false, Builder::new("abcde").to_dfa().is_match("abcdef"));
-            assert_eq!(false, Builder::new("abcde").to_dfa().is_match("abcd"));
+            assert!(Builder::new("abcde").to_dfa().is_match("abcde"));
+            assert!(!Builder::new("abcde").to_dfa().is_match("abcdef"));
+            assert!(!Builder::new("abcde").to_dfa().is_match("abcd"));
         }
     }
 
     #[test]
     fn test_parser_asterisk() {
         {
-            assert_eq!(true, Builder::new("a*").to_dfa().is_match(""));
-            assert_eq!(true, Builder::new("a*").to_dfa().is_match("a"));
-            assert_eq!(true, Builder::new("a*").to_dfa().is_match("aa"));
-            assert_eq!(false, Builder::new("a*").to_dfa().is_match("ab"));
-            assert_eq!(false, Builder::new("a*").to_dfa().is_match("b"));
+            assert!(Builder::new("a*").to_dfa().is_match(""));
+            assert!(Builder::new("a*").to_dfa().is_match("a"));
+            assert!(Builder::new("a*").to_dfa().is_match("aa"));
+            assert!(!Builder::new("a*").to_dfa().is_match("ab"));
+            assert!(!Builder::new("a*").to_dfa().is_match("b"));
         }
         {
-            assert_eq!(true, Builder::new("b*").to_dfa().is_match(""));
-            assert_eq!(true, Builder::new("b*").to_dfa().is_match("b"));
-            assert_eq!(true, Builder::new("b*").to_dfa().is_match("bbbbbbb"));
-            assert_eq!(false, Builder::new("b*").to_dfa().is_match("a"));
-            assert_eq!(false, Builder::new("b*").to_dfa().is_match("ba"));
+            assert!(Builder::new("b*").to_dfa().is_match(""));
+            assert!(Builder::new("b*").to_dfa().is_match("b"));
+            assert!(Builder::new("b*").to_dfa().is_match("bbbbbbb"));
+            assert!(!Builder::new("b*").to_dfa().is_match("a"));
+            assert!(!Builder::new("b*").to_dfa().is_match("ba"));
         }
     }
     #[test]
     fn test_parser_plus() {
-        assert_eq!(true, Builder::new("a+").to_dfa().is_match("a"));
-        assert_eq!(true, Builder::new("a+").to_dfa().is_match("aa"));
-        assert_eq!(true, Builder::new("a+").to_dfa().is_match("aaa"));
-        assert_eq!(false, Builder::new("a+").to_dfa().is_match("b"));
-        assert_eq!(false, Builder::new("a+").to_dfa().is_match(""));
+        assert!(Builder::new("a+").to_dfa().is_match("a"));
+        assert!(Builder::new("a+").to_dfa().is_match("aa"));
+        assert!(Builder::new("a+").to_dfa().is_match("aaa"));
+        assert!(!Builder::new("a+").to_dfa().is_match("b"));
+        assert!(!Builder::new("a+").to_dfa().is_match(""));
     }
 
     #[test]
     fn test_parser_dot() {
         {
-            assert_eq!(true, Builder::new(".").to_dfa().is_match("a"));
-            assert_eq!(false, Builder::new(".").to_dfa().is_match("ab"));
-            assert_eq!(false, Builder::new(".").to_dfa().is_match("aa"));
-            assert_eq!(false, Builder::new(".").to_dfa().is_match(""));
+            assert!(Builder::new(".").to_dfa().is_match("a"));
+            assert!(!Builder::new(".").to_dfa().is_match("ab"));
+            assert!(!Builder::new(".").to_dfa().is_match("aa"));
+            assert!(!Builder::new(".").to_dfa().is_match(""));
         }
         {
-            assert_eq!(true, Builder::new("a.").to_dfa().is_match("aa"));
-            assert_eq!(true, Builder::new("a.").to_dfa().is_match("ab"));
-            assert_eq!(false, Builder::new("a.").to_dfa().is_match("a"));
-            assert_eq!(false, Builder::new("a.").to_dfa().is_match("abb"));
-            assert_eq!(false, Builder::new("a.").to_dfa().is_match(""));
+            assert!(Builder::new("a.").to_dfa().is_match("aa"));
+            assert!(Builder::new("a.").to_dfa().is_match("ab"));
+            assert!(!Builder::new("a.").to_dfa().is_match("a"));
+            assert!(!Builder::new("a.").to_dfa().is_match("abb"));
+            assert!(!Builder::new("a.").to_dfa().is_match(""));
         }
         {
-            assert_eq!(true, Builder::new("a..").to_dfa().is_match("aaa"));
-            assert_eq!(true, Builder::new("a..").to_dfa().is_match("abc"));
-            assert_eq!(false, Builder::new("a..").to_dfa().is_match("aaaa"));
-            assert_eq!(false, Builder::new("a..").to_dfa().is_match("aa"));
-            assert_eq!(false, Builder::new("a..").to_dfa().is_match("ab"));
-            assert_eq!(false, Builder::new("a..").to_dfa().is_match("a"));
-            assert_eq!(false, Builder::new("a..").to_dfa().is_match("b"));
-            assert_eq!(false, Builder::new("a..").to_dfa().is_match(""));
+            assert!(Builder::new("a..").to_dfa().is_match("aaa"));
+            assert!(Builder::new("a..").to_dfa().is_match("abc"));
+            assert!(!Builder::new("a..").to_dfa().is_match("aaaa"));
+            assert!(!Builder::new("a..").to_dfa().is_match("aa"));
+            assert!(!Builder::new("a..").to_dfa().is_match("ab"));
+            assert!(!Builder::new("a..").to_dfa().is_match("a"));
+            assert!(!Builder::new("a..").to_dfa().is_match("b"));
+            assert!(!Builder::new("a..").to_dfa().is_match(""));
         }
         {
-            assert_eq!(true, Builder::new("a.c").to_dfa().is_match("aac"));
-            assert_eq!(true, Builder::new("a.c").to_dfa().is_match("abc"));
-            assert_eq!(false, Builder::new("a.c").to_dfa().is_match("aaaa"));
-            assert_eq!(false, Builder::new("a.c").to_dfa().is_match("aa"));
-            assert_eq!(false, Builder::new("a.c").to_dfa().is_match("ab"));
-            assert_eq!(false, Builder::new("a.c").to_dfa().is_match("a"));
-            assert_eq!(false, Builder::new("a.c").to_dfa().is_match("b"));
-            assert_eq!(false, Builder::new("a.c").to_dfa().is_match(""));
+            assert!(Builder::new("a.c").to_dfa().is_match("aac"));
+            assert!(Builder::new("a.c").to_dfa().is_match("abc"));
+            assert!(!Builder::new("a.c").to_dfa().is_match("aaaa"));
+            assert!(!Builder::new("a.c").to_dfa().is_match("aa"));
+            assert!(!Builder::new("a.c").to_dfa().is_match("ab"));
+            assert!(!Builder::new("a.c").to_dfa().is_match("a"));
+            assert!(!Builder::new("a.c").to_dfa().is_match("b"));
+            assert!(!Builder::new("a.c").to_dfa().is_match(""));
         }
         {
-            assert_eq!(true, Builder::new(".a").to_dfa().is_match("aa"));
-            assert_eq!(true, Builder::new(".a").to_dfa().is_match("ba"));
-            assert_eq!(false, Builder::new(".a").to_dfa().is_match(""));
-            assert_eq!(false, Builder::new(".a").to_dfa().is_match("ab"));
-            assert_eq!(false, Builder::new(".a").to_dfa().is_match("baa"));
-            assert_eq!(false, Builder::new(".a").to_dfa().is_match("bab"));
+            assert!(Builder::new(".a").to_dfa().is_match("aa"));
+            assert!(Builder::new(".a").to_dfa().is_match("ba"));
+            assert!(!Builder::new(".a").to_dfa().is_match(""));
+            assert!(!Builder::new(".a").to_dfa().is_match("ab"));
+            assert!(!Builder::new(".a").to_dfa().is_match("baa"));
+            assert!(!Builder::new(".a").to_dfa().is_match("bab"));
         }
     }
     #[test]
     fn test_parser_or() {
         {
-            assert_eq!(true, Builder::new("a|b").to_dfa().is_match("a"));
-            assert_eq!(true, Builder::new("a|b").to_dfa().is_match("b"));
-            assert_eq!(false, Builder::new("a|b").to_dfa().is_match("c"));
-            assert_eq!(false, Builder::new("a|b").to_dfa().is_match("ab"));
+            assert!(Builder::new("a|b").to_dfa().is_match("a"));
+            assert!(Builder::new("a|b").to_dfa().is_match("b"));
+            assert!(!Builder::new("a|b").to_dfa().is_match("c"));
+            assert!(!Builder::new("a|b").to_dfa().is_match("ab"));
         }
         {
-            assert_eq!(true, Builder::new("ab|cd").to_dfa().is_match("ab"));
-            assert_eq!(true, Builder::new("ab|cd").to_dfa().is_match("cd"));
-            assert_eq!(false, Builder::new("ab|cd").to_dfa().is_match("a"));
-            assert_eq!(false, Builder::new("ab|cd").to_dfa().is_match("b"));
-            assert_eq!(false, Builder::new("ab|cd").to_dfa().is_match("c"));
-            assert_eq!(false, Builder::new("ab|cd").to_dfa().is_match("d"));
-            assert_eq!(false, Builder::new("ab|cd").to_dfa().is_match("abcd"));
+            assert!(Builder::new("ab|cd").to_dfa().is_match("ab"));
+            assert!(Builder::new("ab|cd").to_dfa().is_match("cd"));
+            assert!(!Builder::new("ab|cd").to_dfa().is_match("a"));
+            assert!(!Builder::new("ab|cd").to_dfa().is_match("b"));
+            assert!(!Builder::new("ab|cd").to_dfa().is_match("c"));
+            assert!(!Builder::new("ab|cd").to_dfa().is_match("d"));
+            assert!(!Builder::new("ab|cd").to_dfa().is_match("abcd"));
         }
     }
     #[test]
     fn test_parser_question() {
         {
-            assert_eq!(true, Builder::new("a?").to_dfa().is_match("a"));
-            assert_eq!(true, Builder::new("a?").to_dfa().is_match(""));
-            assert_eq!(false, Builder::new("a?").to_dfa().is_match("aa"));
+            assert!(Builder::new("a?").to_dfa().is_match("a"));
+            assert!(Builder::new("a?").to_dfa().is_match(""));
+            assert!(!Builder::new("a?").to_dfa().is_match("aa"));
         }
         {
-            assert_eq!(true, Builder::new("a?b").to_dfa().is_match("ab"));
-            assert_eq!(true, Builder::new("a?b").to_dfa().is_match("b"));
-            assert_eq!(false, Builder::new("a?b").to_dfa().is_match("a"));
-            assert_eq!(false, Builder::new("a?b").to_dfa().is_match(""));
-            assert_eq!(false, Builder::new("a?b").to_dfa().is_match("aa"));
+            assert!(Builder::new("a?b").to_dfa().is_match("ab"));
+            assert!(Builder::new("a?b").to_dfa().is_match("b"));
+            assert!(!Builder::new("a?b").to_dfa().is_match("a"));
+            assert!(!Builder::new("a?b").to_dfa().is_match(""));
+            assert!(!Builder::new("a?b").to_dfa().is_match("aa"));
         }
         {
-            assert_eq!(true, Builder::new("ab?c").to_dfa().is_match("abc"));
-            assert_eq!(true, Builder::new("ab?c").to_dfa().is_match("ac"));
-            assert_eq!(false, Builder::new("ab?c").to_dfa().is_match("a"));
-            assert_eq!(false, Builder::new("ab?c").to_dfa().is_match("b"));
-            assert_eq!(false, Builder::new("ab?c").to_dfa().is_match(""));
-            assert_eq!(false, Builder::new("ab?c").to_dfa().is_match("ab"));
+            assert!(Builder::new("ab?c").to_dfa().is_match("abc"));
+            assert!(Builder::new("ab?c").to_dfa().is_match("ac"));
+            assert!(!Builder::new("ab?c").to_dfa().is_match("a"));
+            assert!(!Builder::new("ab?c").to_dfa().is_match("b"));
+            assert!(!Builder::new("ab?c").to_dfa().is_match(""));
+            assert!(!Builder::new("ab?c").to_dfa().is_match("ab"));
         }
         {
-            assert_eq!(true, Builder::new("a?c?").to_dfa().is_match(""));
-            assert_eq!(true, Builder::new("a?c?").to_dfa().is_match("a"));
-            assert_eq!(true, Builder::new("a?c?").to_dfa().is_match("c"));
-            assert_eq!(true, Builder::new("a?c?").to_dfa().is_match("ac"));
-            assert_eq!(false, Builder::new("a?c?").to_dfa().is_match("b"));
+            assert!(Builder::new("a?c?").to_dfa().is_match(""));
+            assert!(Builder::new("a?c?").to_dfa().is_match("a"));
+            assert!(Builder::new("a?c?").to_dfa().is_match("c"));
+            assert!(Builder::new("a?c?").to_dfa().is_match("ac"));
+            assert!(!Builder::new("a?c?").to_dfa().is_match("b"));
         }
     }
 }

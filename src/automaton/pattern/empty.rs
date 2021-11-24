@@ -53,9 +53,9 @@ mod test {
     fn test_empty() {
         let e = Empty::new();
 
-        assert_eq!(true, e.is_match("\0"));
-        assert_eq!(false, e.is_match("a"));
-        assert_eq!(false, e.is_match(" a"));
-        assert_eq!(false, e.is_match("a "));
+        assert!(e.is_match("\0"));
+        assert!(!e.is_match("a"));
+        assert!(!e.is_match(" a"));
+        assert!(!e.is_match("a "));
     }
 }
