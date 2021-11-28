@@ -1,0 +1,16 @@
+version: '3.7'
+
+services:
+  rust-dev:
+    build: ./
+    container_name: toy-regex-rust
+    working_dir: /app
+    volumes:
+      - ./:/app
+      - rust_dev_target:/app/target
+    tty: true
+    environment:
+      CARGO_BUILD_TARGET_DIR: /app/target
+
+volumes:
+  rust_dev_target: null
