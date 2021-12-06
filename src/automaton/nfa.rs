@@ -39,13 +39,11 @@ impl NFARulebook {
 
     // 現在の状態から次の状態の集合を取得
     pub fn next_state(&self, states: &HashSet<State>, c: Option<char>) -> HashSet<State> {
-        let mut next_states = vec![];
-        states.iter().for_each(|s| {
-            let mut t = self.rule_for(s, c);
-            next_states.append(&mut t);
-        });
-
-        next_states.into_iter().collect::<HashSet<State>>()
+        states
+            .iter()
+            .map(|s| self.rule_for(s, c))
+            .flatten()
+            .collect::<HashSet<State>>()
     }
 
     // ルールを適用し、次の状態を返す
