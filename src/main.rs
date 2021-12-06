@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::path::PathBuf;
 use structopt::StructOpt;
 use toy_regex::regex::Regex;
