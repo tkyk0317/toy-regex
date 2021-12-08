@@ -6,85 +6,85 @@ mod test {
     fn test_integration1() {
         let re = Regex::new("a?bc");
 
-        assert!(re.exec("bc", true, true));
-        assert!(re.exec("bc", true, false));
-        assert!(re.exec("bc", false, true));
-        assert!(re.exec("bc", false, false));
+        assert!(re.exec(Some("bc".to_string()), true, true, None));
+        assert!(re.exec(Some("bc".to_string()), true, false, None));
+        assert!(re.exec(Some("bc".to_string()), false, true, None));
+        assert!(re.exec(Some("bc".to_string()), false, false, None));
 
-        assert!(re.exec("abc", true, true));
-        assert!(re.exec("abc", true, false));
-        assert!(re.exec("abc", false, true));
-        assert!(re.exec("abc", false, false));
+        assert!(re.exec(Some("abc".to_string()), true, true, None));
+        assert!(re.exec(Some("abc".to_string()), true, false, None));
+        assert!(re.exec(Some("abc".to_string()), false, true, None));
+        assert!(re.exec(Some("abc".to_string()), false, false, None));
 
-        assert!(re.exec("aabc", true, true));
-        assert!(!re.exec("aabc", true, false));
-        assert!(re.exec("aabc", false, true));
-        assert!(!re.exec("aabc", false, false));
+        assert!(re.exec(Some("aabc".to_string()), true, true, None));
+        assert!(!re.exec(Some("aabc".to_string()), true, false, None));
+        assert!(re.exec(Some("aabc".to_string()), false, true, None));
+        assert!(!re.exec(Some("aabc".to_string()), false, false, None));
 
-        assert!(!re.exec("", true, true));
-        assert!(!re.exec("", true, false));
-        assert!(!re.exec("", false, true));
-        assert!(!re.exec("", false, false));
+        assert!(!re.exec(Some("".to_string()), true, true, None));
+        assert!(!re.exec(Some("".to_string()), true, false, None));
+        assert!(!re.exec(Some("".to_string()), false, true, None));
+        assert!(!re.exec(Some("".to_string()), false, false, None));
 
-        assert!(!re.exec("ab", true, true));
-        assert!(!re.exec("ab", true, false));
-        assert!(!re.exec("ab", false, true));
-        assert!(!re.exec("ab", false, false));
+        assert!(!re.exec(Some("ab".to_string()), true, true, None));
+        assert!(!re.exec(Some("ab".to_string()), true, false, None));
+        assert!(!re.exec(Some("ab".to_string()), false, true, None));
+        assert!(!re.exec(Some("ab".to_string()), false, false, None));
 
-        assert!(!re.exec("aab", true, true));
-        assert!(!re.exec("aab", true, false));
-        assert!(!re.exec("aab", false, true));
-        assert!(!re.exec("aab", false, false));
+        assert!(!re.exec(Some("aab".to_string()), true, true, None));
+        assert!(!re.exec(Some("aab".to_string()), true, false, None));
+        assert!(!re.exec(Some("aab".to_string()), false, true, None));
+        assert!(!re.exec(Some("aab".to_string()), false, false, None));
     }
 
     #[test]
     fn test_integration2() {
         let re = Regex::new("abc");
 
-        assert!(re.exec("abc", true, true));
-        assert!(re.exec("abc", true, false));
-        assert!(re.exec("abc", false, true));
-        assert!(re.exec("abc", false, false));
+        assert!(re.exec(Some("abc".to_string()), true, true, None));
+        assert!(re.exec(Some("abc".to_string()), true, false, None));
+        assert!(re.exec(Some("abc".to_string()), false, true, None));
+        assert!(re.exec(Some("abc".to_string()), false, false, None));
 
-        assert!(re.exec("aabc", true, true));
-        assert!(!re.exec("aabc", true, false));
-        assert!(re.exec("aabc", false, true));
-        assert!(!re.exec("aabc", false, false));
+        assert!(re.exec(Some("aabc".to_string()), true, true, None));
+        assert!(!re.exec(Some("aabc".to_string()), true, false, None));
+        assert!(re.exec(Some("aabc".to_string()), false, true, None));
+        assert!(!re.exec(Some("aabc".to_string()), false, false, None));
 
-        assert!(!re.exec("", true, true));
-        assert!(!re.exec("", true, false));
-        assert!(!re.exec("", false, true));
-        assert!(!re.exec("", false, false));
+        assert!(!re.exec(Some("".to_string()), true, true, None));
+        assert!(!re.exec(Some("".to_string()), true, false, None));
+        assert!(!re.exec(Some("".to_string()), false, true, None));
+        assert!(!re.exec(Some("".to_string()), false, false, None));
 
-        assert!(!re.exec("ab", true, true));
-        assert!(!re.exec("ab", true, false));
-        assert!(!re.exec("ab", false, true));
-        assert!(!re.exec("ab", false, false));
+        assert!(!re.exec(Some("ab".to_string()), true, true, None));
+        assert!(!re.exec(Some("ab".to_string()), true, false, None));
+        assert!(!re.exec(Some("ab".to_string()), false, true, None));
+        assert!(!re.exec(Some("ab".to_string()), false, false, None));
 
-        assert!(!re.exec("aab", true, true));
-        assert!(!re.exec("aab", true, false));
-        assert!(!re.exec("aab", false, true));
-        assert!(!re.exec("aab", false, false));
+        assert!(!re.exec(Some("aab".to_string()), true, true, None));
+        assert!(!re.exec(Some("aab".to_string()), true, false, None));
+        assert!(!re.exec(Some("aab".to_string()), false, true, None));
+        assert!(!re.exec(Some("aab".to_string()), false, false, None));
     }
 
     #[test]
     fn test_integration3() {
         let re = Regex::new("a+b+");
 
-        assert!(re.exec("abc", true, true));
-        assert!(re.exec("abc", true, false));
-        assert!(re.exec("abc", false, true));
-        assert!(!re.exec("abc", false, false));
+        assert!(re.exec(Some("abc".to_string()), true, true, None));
+        assert!(re.exec(Some("abc".to_string()), true, false, None));
+        assert!(re.exec(Some("abc".to_string()), false, true, None));
+        assert!(!re.exec(Some("abc".to_string()), false, false, None));
 
-        assert!(re.exec("zabc", true, true));
-        assert!(!re.exec("zabc", true, false));
-        assert!(re.exec("zabc", false, true));
-        assert!(!re.exec("zabc", false, false));
+        assert!(re.exec(Some("zabc".to_string()), true, true, None));
+        assert!(!re.exec(Some("zabc".to_string()), true, false, None));
+        assert!(re.exec(Some("zabc".to_string()), false, true, None));
+        assert!(!re.exec(Some("zabc".to_string()), false, false, None));
 
-        assert!(re.exec("aaaaaaabbbbbbbc", true, true));
-        assert!(re.exec("aaaaaaabbbbbbbc", true, false));
-        assert!(re.exec("aaaaaaabbbbbbbc", false, true));
-        assert!(!re.exec("aaaaaaabbbbbbbc", false, false));
+        assert!(re.exec(Some("aaaaaaabbbbbbbc".to_string()), true, true, None));
+        assert!(re.exec(Some("aaaaaaabbbbbbbc".to_string()), true, false, None));
+        assert!(re.exec(Some("aaaaaaabbbbbbbc".to_string()), false, true, None));
+        assert!(!re.exec(Some("aaaaaaabbbbbbbc".to_string()), false, false, None));
     }
 
     #[test]
@@ -92,110 +92,110 @@ mod test {
         {
             let re = Regex::new("(ab)c");
 
-            assert!(re.exec("zabcz", true, true));
-            assert!(!re.exec("zabcz", true, false));
-            assert!(re.exec("zabcz", false, true));
-            assert!(!re.exec("zabcz", false, false));
+            assert!(re.exec(Some("zabcz".to_string()), true, true, None));
+            assert!(!re.exec(Some("zabcz".to_string()), true, false, None));
+            assert!(re.exec(Some("zabcz".to_string()), false, true, None));
+            assert!(!re.exec(Some("zabcz".to_string()), false, false, None));
 
-            assert!(!re.exec("ac", true, true));
-            assert!(!re.exec("ac", true, false));
-            assert!(!re.exec("ac", false, true));
-            assert!(!re.exec("ac", false, false));
+            assert!(!re.exec(Some("ac".to_string()), true, true, None));
+            assert!(!re.exec(Some("ac".to_string()), true, false, None));
+            assert!(!re.exec(Some("ac".to_string()), false, true, None));
+            assert!(!re.exec(Some("ac".to_string()), false, false, None));
         }
         {
             let re = Regex::new("a|c");
 
-            assert!(re.exec("a", true, true));
-            assert!(re.exec("a", true, false));
-            assert!(re.exec("a", false, true));
-            assert!(re.exec("a", false, false));
+            assert!(re.exec(Some("a".to_string()), true, true, None));
+            assert!(re.exec(Some("a".to_string()), true, false, None));
+            assert!(re.exec(Some("a".to_string()), false, true, None));
+            assert!(re.exec(Some("a".to_string()), false, false, None));
 
-            assert!(re.exec("c", true, true));
-            assert!(re.exec("c", true, false));
-            assert!(re.exec("c", false, true));
-            assert!(re.exec("c", false, false));
+            assert!(re.exec(Some("c".to_string()), true, true, None));
+            assert!(re.exec(Some("c".to_string()), true, false, None));
+            assert!(re.exec(Some("c".to_string()), false, true, None));
+            assert!(re.exec(Some("c".to_string()), false, false, None));
 
-            assert!(!re.exec("b", true, true));
-            assert!(!re.exec("b", true, false));
-            assert!(!re.exec("b", false, true));
-            assert!(!re.exec("b", false, false));
+            assert!(!re.exec(Some("b".to_string()), true, true, None));
+            assert!(!re.exec(Some("b".to_string()), true, false, None));
+            assert!(!re.exec(Some("b".to_string()), false, true, None));
+            assert!(!re.exec(Some("b".to_string()), false, false, None));
         }
         {
             let re = Regex::new("(ab)*");
 
-            assert!(re.exec("ab", true, true));
-            assert!(re.exec("ab", true, false));
-            assert!(re.exec("ab", false, true));
-            assert!(re.exec("ab", false, false));
+            assert!(re.exec(Some("ab".to_string()), true, true, None));
+            assert!(re.exec(Some("ab".to_string()), true, false, None));
+            assert!(re.exec(Some("ab".to_string()), false, true, None));
+            assert!(re.exec(Some("ab".to_string()), false, false, None));
 
-            assert!(re.exec("ababab", true, true));
-            assert!(re.exec("ababab", true, false));
-            assert!(re.exec("ababab", false, true));
-            assert!(re.exec("ababab", false, false));
+            assert!(re.exec(Some("ababab".to_string()), true, true, None));
+            assert!(re.exec(Some("ababab".to_string()), true, false, None));
+            assert!(re.exec(Some("ababab".to_string()), false, true, None));
+            assert!(re.exec(Some("ababab".to_string()), false, false, None));
 
-            assert!(re.exec("aa", true, true));
-            assert!(re.exec("aa", true, false));
-            assert!(re.exec("aa", false, true));
-            assert!(!re.exec("aa", false, false));
+            assert!(re.exec(Some("aa".to_string()), true, true, None));
+            assert!(re.exec(Some("aa".to_string()), true, false, None));
+            assert!(re.exec(Some("aa".to_string()), false, true, None));
+            assert!(!re.exec(Some("aa".to_string()), false, false, None));
         }
         {
             let re = Regex::new("(ac)|(bd)");
 
-            assert!(re.exec("ac", true, true));
-            assert!(re.exec("ac", true, false));
-            assert!(re.exec("ac", false, true));
-            assert!(re.exec("ac", false, false));
+            assert!(re.exec(Some("ac".to_string()), true, true, None));
+            assert!(re.exec(Some("ac".to_string()), true, false, None));
+            assert!(re.exec(Some("ac".to_string()), false, true, None));
+            assert!(re.exec(Some("ac".to_string()), false, false, None));
 
-            assert!(re.exec("bd", true, true));
-            assert!(re.exec("bd", true, false));
-            assert!(re.exec("bd", false, true));
-            assert!(re.exec("bd", false, false));
+            assert!(re.exec(Some("bd".to_string()), true, true, None));
+            assert!(re.exec(Some("bd".to_string()), true, false, None));
+            assert!(re.exec(Some("bd".to_string()), false, true, None));
+            assert!(re.exec(Some("bd".to_string()), false, false, None));
 
-            assert!(!re.exec("bc", true, true));
-            assert!(!re.exec("bc", true, false));
-            assert!(!re.exec("bc", false, true));
-            assert!(!re.exec("bc", false, false));
+            assert!(!re.exec(Some("bc".to_string()), true, true, None));
+            assert!(!re.exec(Some("bc".to_string()), true, false, None));
+            assert!(!re.exec(Some("bc".to_string()), false, true, None));
+            assert!(!re.exec(Some("bc".to_string()), false, false, None));
         }
         {
             let re = Regex::new("(ab)+");
 
-            assert!(re.exec("ab", true, true));
-            assert!(re.exec("ab", true, false));
-            assert!(re.exec("ab", false, true));
-            assert!(re.exec("ab", false, false));
+            assert!(re.exec(Some("ab".to_string()), true, true, None));
+            assert!(re.exec(Some("ab".to_string()), true, false, None));
+            assert!(re.exec(Some("ab".to_string()), false, true, None));
+            assert!(re.exec(Some("ab".to_string()), false, false, None));
 
-            assert!(re.exec("abababab", true, true));
-            assert!(re.exec("abababab", true, false));
-            assert!(re.exec("abababab", false, true));
-            assert!(re.exec("abababab", false, false));
+            assert!(re.exec(Some("abababab".to_string()), true, true, None));
+            assert!(re.exec(Some("abababab".to_string()), true, false, None));
+            assert!(re.exec(Some("abababab".to_string()), false, true, None));
+            assert!(re.exec(Some("abababab".to_string()), false, false, None));
 
-            assert!(!re.exec("a", true, true));
-            assert!(!re.exec("a", true, false));
-            assert!(!re.exec("a", false, true));
-            assert!(!re.exec("a", false, false));
+            assert!(!re.exec(Some("a".to_string()), true, true, None));
+            assert!(!re.exec(Some("a".to_string()), true, false, None));
+            assert!(!re.exec(Some("a".to_string()), false, true, None));
+            assert!(!re.exec(Some("a".to_string()), false, false, None));
 
-            assert!(!re.exec("", true, true));
-            assert!(!re.exec("", true, false));
-            assert!(!re.exec("", false, true));
-            assert!(!re.exec("", false, false));
+            assert!(!re.exec(Some("".to_string()), true, true, None));
+            assert!(!re.exec(Some("".to_string()), true, false, None));
+            assert!(!re.exec(Some("".to_string()), false, true, None));
+            assert!(!re.exec(Some("".to_string()), false, false, None));
         }
         {
             let re = Regex::new("(ab)?");
 
-            assert!(re.exec("ab", true, true));
-            assert!(re.exec("ab", true, false));
-            assert!(re.exec("ab", false, true));
-            assert!(re.exec("ab", false, false));
+            assert!(re.exec(Some("ab".to_string()), true, true, None));
+            assert!(re.exec(Some("ab".to_string()), true, false, None));
+            assert!(re.exec(Some("ab".to_string()), false, true, None));
+            assert!(re.exec(Some("ab".to_string()), false, false, None));
 
-            assert!(re.exec("abababab", true, true));
-            assert!(re.exec("abababab", true, false));
-            assert!(re.exec("abababab", false, true));
-            assert!(!re.exec("abababab", false, false));
+            assert!(re.exec(Some("abababab".to_string()), true, true, None));
+            assert!(re.exec(Some("abababab".to_string()), true, false, None));
+            assert!(re.exec(Some("abababab".to_string()), false, true, None));
+            assert!(!re.exec(Some("abababab".to_string()), false, false, None));
 
-            assert!(re.exec("", true, true));
-            assert!(re.exec("", true, false));
-            assert!(re.exec("", false, true));
-            assert!(re.exec("", false, false));
+            assert!(re.exec(Some("".to_string()), true, true, None));
+            assert!(re.exec(Some("".to_string()), true, false, None));
+            assert!(re.exec(Some("".to_string()), false, true, None));
+            assert!(re.exec(Some("".to_string()), false, false, None));
         }
     }
 }

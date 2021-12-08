@@ -13,7 +13,7 @@ struct Opt {
 
     // 入力文字列
     #[structopt(short = "s", help = "Input string")]
-    input_str: String,
+    input_str: Option<String>,
 
     // インプットファイル
     #[structopt(short = "i", help = "[future func] Input filename")]
@@ -40,6 +40,6 @@ fn main() {
     // 正規表現実行
     println!(
         "{:?}",
-        Regex::new(&opt.regex).exec(&opt.input_str, opt.vm, opt.substring)
+        Regex::new(&opt.regex).exec(opt.input_str, opt.vm, opt.substring, opt.input_file)
     );
 }

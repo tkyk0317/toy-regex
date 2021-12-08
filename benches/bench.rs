@@ -9,7 +9,7 @@ static LEN: usize = 100000;
 #[bench]
 fn regex_vm_bench(b: &mut test::Bencher) {
     let s = String::from_utf8(vec![b'a'; LEN]).unwrap();
-    b.iter(|| regex::Regex::new(".*a").exec(&s, true, false));
+    b.iter(|| regex::Regex::new(".*a").exec(Some(s.clone()), true, false, None));
 }
 
 //--------------------------------------------------------------------------------------------
@@ -28,5 +28,5 @@ fn regex_vm_bench(b: &mut test::Bencher) {
 #[bench]
 fn regex_nfa_bench(b: &mut test::Bencher) {
     let s = String::from_utf8(vec![b'a'; LEN]).unwrap();
-    b.iter(|| regex::Regex::new(".*a").exec(&s, false, false));
+    b.iter(|| regex::Regex::new(".*a").exec(Some(s.clone()), false, false, None));
 }
